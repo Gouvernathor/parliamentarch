@@ -67,8 +67,7 @@ def get_seats_centers(nseats:int, nrows:int|None=None, *, outer_fill_first:bool=
         _seat_radius = 1 / (4*nrows - 2)
 
     maxed_rows = _cached_get_rows_from_number_of_rows(nrows)
-    maxed_nseats = sum(maxed_rows)
-    filling_ratio = nseats/maxed_nseats
+    filling_ratio = nseats/sum(maxed_rows)
 
     if outer_fill_first:
         rows = list(maxed_rows)
@@ -101,7 +100,7 @@ def get_seats_centers(nseats:int, nrows:int|None=None, *, outer_fill_first:bool=
             nseats_this_row = round(filling_ratio * maxed_rows[r])
 
         # row radius : the radius of the circle crossing the center of each seat in the row
-        R = .5 + 2*(r)*_seat_radius
+        R = .5 + 2*r*_seat_radius
 
         # the angle necessary in this row to put the first (and last) seats fully in the canvas
         elevation_margin = math.asin(_seat_radius/R)
