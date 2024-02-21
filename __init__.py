@@ -1,7 +1,7 @@
 import functools
 import math
 
-def get_rows_from_number_of_rows(nrows):
+def get_rows_from_number_of_rows(nrows:int)->list[int]:
     """
     Returns a list of number of seats per row, from inner to outer.
     The length of the list is nrows.
@@ -31,13 +31,13 @@ def get_rows_from_number_of_rows(nrows):
     return rv
 
 @functools.cache
-def _cached_get_rows_from_number_of_rows(nrows):
+def _cached_get_rows_from_number_of_rows(nrows:int)->tuple[int]:
     """
     Returns tuples to avoid cache mutation issues.
     """
     return tuple(get_rows_from_number_of_rows(nrows))
 
-def get_rows_from_number_of_seats(nseats):
+def get_nrows_from_number_of_seats(nseats:int)->int:
     """
     Returns the minimal number of rows necessary to contain nseats seats.
     """
@@ -46,4 +46,4 @@ def get_rows_from_number_of_seats(nseats):
         i += 1
     return i
 
-_cached_get_rows_from_number_of_seats = functools.cache(get_rows_from_number_of_seats)
+_cached_get_nrows_from_number_of_seats = functools.cache(get_nrows_from_number_of_seats)
