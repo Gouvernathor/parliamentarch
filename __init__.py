@@ -70,11 +70,32 @@ def get_seats_centers(nseats:int, nrows:int=None, *, outer_fill_first:bool=False
     maxed_nseats = sum(maxed_rows)
     filling_ratio = nseats/maxed_nseats
 
+    if outer_fill_first:
+        rows = list(maxed_rows)
+        while sum(rows)>nseats:
+            rows.pop(0)
+
+        # here, rows represents the rows which will be fully filled,
+        # and their number of seats
+
+        # this row will be the only one to be partially filled
+        # the innermore ones are empty, the outermore ones are fully filled
+        starting_row = nrows-len(rows)-1
+        seats_on_starting_row = nseats-sum(rows)
+        del rows
+    else:
+        starting_row = 0
+
     positions = []
-    for r in range(nrows):
-        if r == nrows-1: # if it's the last row
+    for r in range(starting_row, nrows):
+        if r == nrows-1: # if it's the last, outermost row
             # fit all the remaining seats
             nseats_this_row = nseats-len(positions)
+        elif outer_fill_first:
+            if r == starting_row:
+                nseats_this_row = seats_on_starting_row
+            else:
+                nseats_this_row = maxed_rows[r]
         else:
             # fullness of the diagram times the maximum number of seats in the row
             nseats_this_row = round(filling_ratio * maxed_rows[r])
