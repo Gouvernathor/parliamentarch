@@ -60,7 +60,7 @@ def get_seats_centers(nseats:int, nrows:int=None, *, outer_fill_first:bool=False
     """
     # _seat_radius is in the same unit as the coordinates
     # TODO: figure out if _seat_radius is relevant or should be removed
-    
+
     if nrows is None:
         nrows = _cached_get_nrows_from_number_of_seats(nseats)
     if _seat_radius is None:
@@ -69,27 +69,33 @@ def get_seats_centers(nseats:int, nrows:int=None, *, outer_fill_first:bool=False
     maxed_rows = _cached_get_rows_from_number_of_rows(nrows)
     maxed_nseats = sum(maxed_rows)
     filling_ratio = nseats/maxed_nseats
-    
-    positions = []
-    for r in range(1, nrows+1):
-        # row radius : the radius of the circle crossing the center of each seat in the row
-        R = .5 + 2*(r-1)*_seat_radius
 
-        if r == nrows: # if it's the last row
+    positions = []
+    for r in range(nrows):
+        if r == nrows-1: # if it's the last row
             # fit all the remaining seats
             nseats_this_row = nseats-len(positions)
         else:
             # fullness of the diagram times the maximum number of seats in the row
-            nseats_this_row = round(filling_ratio * maxed_rows[r-1])
+            nseats_this_row = round(filling_ratio * maxed_rows[r])
+
+        # row radius : the radius of the circle crossing the center of each seat in the row
+        R = .5 + 2*(r)*_seat_radius
+
+        # the angle necessary in this row to put the first (and last) seats fully in the canvas
+        elevation_margin = math.asin(_seat_radius/R)
+
+        # the angle separating the seats of that row
+        angle_increment = (math.pi-2*elevation_margin) / (nseats_this_row-1)
+        # a fraction of the remaining space,
+        # keeping in mind that the same elevation on start and end limits that remaining place to less than 2pi
 
         if nseats_this_row == 1:
             positions.append((math.pi/2, 1., R))
         else:
             for s in range(nseats_this_row):
-                # angle of the seat's position relative to the hemicycle center
-                angle = s * (math.pi-2*math.asin(_seat_radius/R)) / (nseats_this_row-1) + math.asin(_seat_radius/R)
-
+                angle = elevation_margin + s*angle_increment
                 positions.append((angle, R*math.cos(angle)+1, R*math.sin(angle)))
-    
+
     positions.sort(reverse=True)
     return positions
