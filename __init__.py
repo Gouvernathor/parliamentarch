@@ -31,7 +31,7 @@ def get_rows_from_number_of_rows(nrows:int)->list[int]:
     return rv
 
 @functools.cache
-def _cached_get_rows_from_number_of_rows(nrows:int)->tuple[int]:
+def _cached_get_rows_from_number_of_rows(nrows:int)->tuple[int, ...]:
     """
     Returns tuples to avoid cache mutation issues.
     """
@@ -49,7 +49,7 @@ def get_nrows_from_number_of_seats(nseats:int)->int:
 _cached_get_nrows_from_number_of_seats = functools.cache(get_nrows_from_number_of_seats)
 
 
-def get_seats_centers(nseats:int, nrows:int=None, *, outer_fill_first:bool=False, _seat_radius:float=None)->list[tuple[float, float, float]]:
+def get_seats_centers(nseats:int, nrows:int|None=None, *, outer_fill_first:bool=False, _seat_radius:float|None=None)->list[tuple[float, float, float]]:
     """
     Returns a list of seat centers as (angle, x, y) tuples.
     The canvas is assumed to be of 2 in width and 1 in height, with the y axis pointing up.
