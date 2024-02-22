@@ -2,10 +2,12 @@ import enum
 import functools
 import math
 
+from .util import FactoryDict
+
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
 _default_span_angle = 180
 
-def get_rows_from_number_of_rows(nrows: int, span_angle: float = _default_span_angle) -> list[int]:
+def get_rows_from_nrows(nrows: int, span_angle: float = _default_span_angle) -> list[int]:
     """
     This indicates the maximal number of seats for each row for a given number of rows.
     Returns a list of number of seats per row, from inner to outer.
@@ -39,22 +41,22 @@ def get_rows_from_number_of_rows(nrows: int, span_angle: float = _default_span_a
     return rv
 
 @functools.cache
-def _cached_get_rows_from_number_of_rows(nrows: int, span_angle: float = _default_span_angle) -> tuple[int, ...]:
+def _cached_get_rows_from_nrows(nrows: int, span_angle: float = _default_span_angle) -> tuple[int, ...]:
     """
     Returns tuples to avoid cache mutation issues.
     """
-    return tuple(get_rows_from_number_of_rows(nrows, span_angle))
+    return tuple(get_rows_from_nrows(nrows, span_angle))
 
-def get_nrows_from_number_of_seats(nseats: int) -> int:
+def get_nrows_from_nseats(nseats: int) -> int:
     """
     Returns the minimal number of rows necessary to contain nseats seats.
     """
     i = 1
-    while sum(_cached_get_rows_from_number_of_rows(i)) < nseats:
+    while sum(_cached_get_rows_from_nrows(i)) < nseats:
         i += 1
     return i
 
-_cached_get_nrows_from_number_of_seats = functools.cache(get_nrows_from_number_of_seats)
+_cached_nrows_from_nseats = FactoryDict(get_nrows_from_nseats)
 
 
 class FillingStrategy(enum.StrEnum):
@@ -108,13 +110,13 @@ def get_seats_centers(nseats: int, *,
     It defaults to 180° to make a true hemicycle.
     Values above 180° are not supported.
     """
-    nrows = max(min_nrows, _cached_get_nrows_from_number_of_seats(nseats))
+    nrows = max(min_nrows, _cached_nrows_from_nseats[nseats])
     # thickness of a row in the same unit as the coordinates
     row_thicc = 1 / (4*nrows - 2)
     seat_radius = row_thicc * seat_radius_factor
     span_angle_margin = (1 - span_angle/180)*math.pi /2
 
-    maxed_rows = _cached_get_rows_from_number_of_rows(nrows, span_angle)
+    maxed_rows = _cached_get_rows_from_nrows(nrows, span_angle)
 
     match filling_strategy:
         case FillingStrategy.DEFAULT:
