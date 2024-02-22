@@ -52,9 +52,27 @@ _cached_get_nrows_from_number_of_seats = functools.cache(get_nrows_from_number_o
 
 
 class FillingStrategy(enum.StrEnum):
-    DEFAULT = enum.auto()
-    EMPTY_INNER = enum.auto()
-    OUTER_PRIORITY = enum.auto()
+    def __new__(cls, value, doc):
+        self = str.__new__(cls, value)
+        self._value_ = value
+        self.__doc__ = doc
+        return self
+
+    DEFAULT = enum.auto(), """
+    The seats are distributed among all the rows,
+    proportionally to the maximum number of seats each row may contain.
+    """
+
+    EMPTY_INNER = enum.auto(), """
+    Selects as few outermost rows as necessary, then distributes the seats among them,
+    proportionally to the maximum number of seats each row may contain.
+    """
+
+    OUTER_PRIORITY = enum.auto(), """
+    Fills up as many outermost rows as possible,
+    then puts the remaining seats in the outermost remaining row.
+    Incrementing the number of seats fills that row, then the next inner one, and so on.
+    """
 
 def get_seats_centers(nseats:int, *, min_nrows:int=0, filling_strategy:FillingStrategy=FillingStrategy.DEFAULT, _seat_radius:float|None=None)->list[tuple[float, float, float]]:
     """
@@ -67,10 +85,6 @@ def get_seats_centers(nseats:int, *, min_nrows:int=0, filling_strategy:FillingSt
     will be computed automatically.
     If min_nrows is higher, that will be the number of rows, otherwise the parameter is ignored.
     Passing a higher number of rows will make the diagram sparser.
-
-    outer_fill_first is the legacy dense_rows
-    It means that as many innermost rows as possible are emptied, and the remaining seats
-    are distributed proportionally among the outer rows.
     """
     # _seat_radius is in the same unit as the coordinates
     # TODO: figure out if _seat_radius is relevant or should be removed
