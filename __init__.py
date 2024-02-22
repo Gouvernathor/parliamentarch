@@ -52,10 +52,16 @@ _cached_get_nrows_from_number_of_seats = functools.cache(get_nrows_from_number_o
 
 def get_seats_centers(nseats:int, nrows:int|None=None, *, outer_fill_first:bool=False, _seat_radius:float|None=None)->list[tuple[float, float, float]]:
     """
-    Returns a list of seat centers as (angle, x, y) tuples.
+    Returns a list of nseats seat centers as (angle, x, y) tuples.
     The canvas is assumed to be of 2 in width and 1 in height, with the y axis pointing up.
     The angle is calculated from the (1., 0.) center of the hemicycle, in radians,
     with 0° for the leftmost seats, 90° for the center and 180° for the rightmost.
+
+    Passing a number of rows is not necessary, as the minimum number of rows
+    for the given number of seats will be computed automatically.
+    Passing a higher number of rows will make the diagram sparser,
+    and passing a lower number of rows will make the seats cobbled up on the outermost row
+    (which is considered to be a bug)
 
     outer_fill_first is the legacy dense_rows
     It means that as many innermost rows as possible are emptied, and the remaining seats
@@ -63,6 +69,8 @@ def get_seats_centers(nseats:int, nrows:int|None=None, *, outer_fill_first:bool=
     """
     # _seat_radius is in the same unit as the coordinates
     # TODO: figure out if _seat_radius is relevant or should be removed
+
+    # TODO: maybe convert nrows to min_nrows and override it if too small
 
     if nrows is None:
         nrows = _cached_get_nrows_from_number_of_seats(nseats)
