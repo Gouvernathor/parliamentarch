@@ -77,7 +77,7 @@ class FillingStrategy(enum.StrEnum):
 def get_seats_centers(nseats: int, *,
                       min_nrows: int = 0,
                       filling_strategy: FillingStrategy = FillingStrategy.DEFAULT,
-                      _seat_radius: float|None = None,
+                      seat_radius_factor: float = 1,
                       ) -> list[tuple[float, float, float]]:
     """
     Returns a list of nseats seat centers as (angle, x, y) tuples.
@@ -89,13 +89,17 @@ def get_seats_centers(nseats: int, *,
     will be computed automatically.
     If min_nrows is higher, that will be the number of rows, otherwise the parameter is ignored.
     Passing a higher number of rows will make the diagram sparser.
-    """
-    # _seat_radius is in the same unit as the coordinates
-    # TODO: figure out if _seat_radius is relevant or should be removed
 
+    seat_radius_factor should be between 0 and 1,
+    with seats touching their neighbors in packed rows at seat_radius_factor=1.
+    It is only taken into account when placing the seats at the extreme left and right of the hemicycle
+    (which are the seats at the bottom of the diagram),
+    although the placement of these seats impacts in turn the placement of the other seats.
+    """
     nrows = max(min_nrows, _cached_get_nrows_from_number_of_seats(nseats))
-    if _seat_radius is None:
-        _seat_radius = 1 / (4*nrows - 2)
+    # thickness of a row in the same unit as the coordinates
+    row_thicc = 1 / (4*nrows - 2)
+    seat_radius = row_thicc * seat_radius_factor
 
     maxed_rows = _cached_get_rows_from_number_of_rows(nrows)
 
@@ -150,10 +154,10 @@ def get_seats_centers(nseats: int, *,
             # nseats_this_row = round((nseats-len(positions)) * maxed_rows[r]/sum(maxed_rows[r:]))
 
         # row radius : the radius of the circle crossing the center of each seat in the row
-        R = .5 + 2*r*_seat_radius
+        R = .5 + 2*r*row_thicc
 
         # the angle necessary in this row to put the first (and last) seats fully in the canvas
-        elevation_margin = math.asin(_seat_radius/R)
+        elevation_margin = math.asin(seat_radius/R)
 
         # the angle separating the seats of that row
         angle_increment = (math.pi-2*elevation_margin) / (nseats_this_row-1)
