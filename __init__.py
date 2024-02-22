@@ -1,3 +1,4 @@
+import enum
 import functools
 import math
 
@@ -50,7 +51,12 @@ def get_nrows_from_number_of_seats(nseats:int)->int:
 _cached_get_nrows_from_number_of_seats = functools.cache(get_nrows_from_number_of_seats)
 
 
-def get_seats_centers(nseats:int, *, min_nrows:int=0, outer_fill_first:bool=False, _seat_radius:float|None=None)->list[tuple[float, float, float]]:
+class FillingStrategy(enum.StrEnum):
+    DEFAULT = enum.auto()
+    EMPTY_INNER = enum.auto()
+    OUTER_PRIORITY = enum.auto()
+
+def get_seats_centers(nseats:int, *, min_nrows:int=0, filling_strategy:FillingStrategy=FillingStrategy.DEFAULT, _seat_radius:float|None=None)->list[tuple[float, float, float]]:
     """
     Returns a list of nseats seat centers as (angle, x, y) tuples.
     The canvas is assumed to be of 2 in width and 1 in height, with the y axis pointing up.
@@ -69,35 +75,56 @@ def get_seats_centers(nseats:int, *, min_nrows:int=0, outer_fill_first:bool=Fals
     # _seat_radius is in the same unit as the coordinates
     # TODO: figure out if _seat_radius is relevant or should be removed
 
-    # TODO: pass a strategy parameter (based off an enum) between the dense rows, the strict outer priority, and the sparse default one (maybe others)
-
     nrows = max(min_nrows, _cached_get_nrows_from_number_of_seats(nseats))
     if _seat_radius is None:
         _seat_radius = 1 / (4*nrows - 2)
 
     maxed_rows = _cached_get_rows_from_number_of_rows(nrows)
 
-    if outer_fill_first:
-        rows = list(maxed_rows)
-        while sum(rows[1:]) >= nseats:
-            rows.pop(0)
-        # here, rows represents the rows which are enough to contain nseats,
-        # and their number of seats
+    match filling_strategy:
+        case FillingStrategy.DEFAULT:
+            starting_row = 0
+            filling_ratio = nseats/sum(maxed_rows)
 
-        # this row will be the first one to be filled
-        # the innermore ones are empty
-        starting_row = nrows-len(rows)
-        filling_ratio = nseats/sum(rows)
-        del rows
-    else:
-        starting_row = 0
-        filling_ratio = nseats/sum(maxed_rows)
+        case FillingStrategy.EMPTY_INNER:
+            rows = list(maxed_rows)
+            while sum(rows[1:]) >= nseats:
+                rows.pop(0)
+            # here, rows represents the rows which are enough to contain nseats,
+            # and their number of seats
+
+            # this row will be the first one to be filled
+            # the innermore ones are empty
+            starting_row = nrows-len(rows)
+            filling_ratio = nseats/sum(rows)
+            del rows
+
+        case FillingStrategy.OUTER_PRIORITY:
+            rows = list(maxed_rows)
+            while sum(rows) > nseats:
+                rows.pop(0)
+            # here, rows represents the rows which will be fully filled,
+            # and their number of seats
+
+            # this row will be the only one to be partially filled
+            # the innermore ones are empty, the outermore ones are fully filled
+            starting_row = nrows-len(rows)-1
+            seats_on_starting_row = nseats-sum(rows)
+            del rows
+
+        case _:
+            raise ValueError(f"Unrecognized strategy : {filling_strategy}")
 
     positions = []
     for r in range(starting_row, nrows):
         if r == nrows-1: # if it's the last, outermost row
             # fit all the remaining seats
             nseats_this_row = nseats-len(positions)
+        elif filling_strategy == FillingStrategy.OUTER_PRIORITY:
+            if r == starting_row:
+                nseats_this_row = seats_on_starting_row
+            else:
+                nseats_this_row = maxed_rows[r]
         else:
             # fullness of the diagram times the maximum number of seats in the row
             nseats_this_row = round(filling_ratio * maxed_rows[r])
