@@ -2,11 +2,15 @@ import enum
 import functools
 import math
 
-def get_rows_from_number_of_rows(nrows: int) -> list[int]:
+# default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
+_default_span_angle = 180
+
+def get_rows_from_number_of_rows(nrows: int, span_angle: float = _default_span_angle) -> list[int]:
     """
+    This indicates the maximal number of seats for each row for a given number of rows.
     Returns a list of number of seats per row, from inner to outer.
     The length of the list is nrows.
-    This indicates the maximal number of seats for each row for a given number of rows.
+    span_angle, if provided, is the angle in degrees that the hemicycle, as an annulus arc, covers.
     """
     rv = []
 
@@ -24,20 +28,22 @@ def get_rows_from_number_of_rows(nrows: int) -> list[int]:
     # and the radius of the void at the center is equal to that value again.
     # So, total = 4 * (nrows-.5) = 4*nrows - 2
 
+    radian_span_angle = math.pi*span_angle/180
+
     for r in range(nrows):
         # row radius : the radius of the circle crossing the center of each seat in the row
         R = .5 + 2*r*rad
 
-        rv.append(int(math.pi*R/(2*rad)))
+        rv.append(int(radian_span_angle*R/(2*rad)))
 
     return rv
 
 @functools.cache
-def _cached_get_rows_from_number_of_rows(nrows: int) -> tuple[int, ...]:
+def _cached_get_rows_from_number_of_rows(nrows: int, span_angle: float = _default_span_angle) -> tuple[int, ...]:
     """
     Returns tuples to avoid cache mutation issues.
     """
-    return tuple(get_rows_from_number_of_rows(nrows))
+    return tuple(get_rows_from_number_of_rows(nrows, span_angle))
 
 def get_nrows_from_number_of_seats(nseats: int) -> int:
     """
@@ -78,6 +84,7 @@ def get_seats_centers(nseats: int, *,
                       min_nrows: int = 0,
                       filling_strategy: FillingStrategy = FillingStrategy.DEFAULT,
                       seat_radius_factor: float = 1,
+                      span_angle: float = _default_span_angle,
                       ) -> list[tuple[float, float, float]]:
     """
     Returns a list of nseats seat centers as (angle, x, y) tuples.
@@ -95,13 +102,19 @@ def get_seats_centers(nseats: int, *,
     It is only taken into account when placing the seats at the extreme left and right of the hemicycle
     (which are the seats at the bottom of the diagram),
     although the placement of these seats impacts in turn the placement of the other seats.
+
+    span_angle is the angle in degrees from the rightmost seats,
+    through the center, to the leftmost seats.
+    It defaults to 180° to make a true hemicycle.
+    Values above 180° are not supported.
     """
     nrows = max(min_nrows, _cached_get_nrows_from_number_of_seats(nseats))
     # thickness of a row in the same unit as the coordinates
     row_thicc = 1 / (4*nrows - 2)
     seat_radius = row_thicc * seat_radius_factor
+    span_angle_margin = (1 - span_angle/180)*math.pi /2
 
-    maxed_rows = _cached_get_rows_from_number_of_rows(nrows)
+    maxed_rows = _cached_get_rows_from_number_of_rows(nrows, span_angle)
 
     match filling_strategy:
         case FillingStrategy.DEFAULT:
@@ -157,10 +170,14 @@ def get_seats_centers(nseats: int, *,
         R = .5 + 2*r*row_thicc
 
         # the angle necessary in this row to put the first (and last) seats fully in the canvas
-        elevation_margin = math.asin(seat_radius/R)
+        angle_margin = math.asin(seat_radius/R)
+        # add the margin to make up the side angle
+        angle_margin += span_angle_margin
+        # alternatively, allow the centers of the seats by the side to reach the angle's boundary
+        # angle_margin = max(angle_margin, span_angle_margin)
 
         # the angle separating the seats of that row
-        angle_increment = (math.pi-2*elevation_margin) / (nseats_this_row-1)
+        angle_increment = (math.pi-2*angle_margin) / (nseats_this_row-1)
         # a fraction of the remaining space,
         # keeping in mind that the same elevation on start and end limits that remaining place to less than 2pi
 
@@ -168,7 +185,7 @@ def get_seats_centers(nseats: int, *,
             positions.append((math.pi/2, 1., R))
         else:
             for s in range(nseats_this_row):
-                angle = elevation_margin + s*angle_increment
+                angle = angle_margin + s*angle_increment
                 positions.append((angle, R*math.cos(angle)+1, R*math.sin(angle)))
 
     positions.sort(reverse=True)
