@@ -2,7 +2,7 @@ import enum
 import functools
 import math
 
-def get_rows_from_number_of_rows(nrows:int)->list[int]:
+def get_rows_from_number_of_rows(nrows: int) -> list[int]:
     """
     Returns a list of number of seats per row, from inner to outer.
     The length of the list is nrows.
@@ -33,13 +33,13 @@ def get_rows_from_number_of_rows(nrows:int)->list[int]:
     return rv
 
 @functools.cache
-def _cached_get_rows_from_number_of_rows(nrows:int)->tuple[int, ...]:
+def _cached_get_rows_from_number_of_rows(nrows: int) -> tuple[int, ...]:
     """
     Returns tuples to avoid cache mutation issues.
     """
     return tuple(get_rows_from_number_of_rows(nrows))
 
-def get_nrows_from_number_of_seats(nseats:int)->int:
+def get_nrows_from_number_of_seats(nseats: int) -> int:
     """
     Returns the minimal number of rows necessary to contain nseats seats.
     """
@@ -74,7 +74,11 @@ class FillingStrategy(enum.StrEnum):
     Incrementing the number of seats fills that row, then the next inner one, and so on.
     """
 
-def get_seats_centers(nseats:int, *, min_nrows:int=0, filling_strategy:FillingStrategy=FillingStrategy.DEFAULT, _seat_radius:float|None=None)->list[tuple[float, float, float]]:
+def get_seats_centers(nseats: int, *,
+                      min_nrows: int = 0,
+                      filling_strategy: FillingStrategy = FillingStrategy.DEFAULT,
+                      _seat_radius: float|None = None,
+                      ) -> list[tuple[float, float, float]]:
     """
     Returns a list of nseats seat centers as (angle, x, y) tuples.
     The canvas is assumed to be of 2 in width and 1 in height, with the y axis pointing up.
