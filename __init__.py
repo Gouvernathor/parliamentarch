@@ -58,6 +58,8 @@ def get_seats_centers(nseats:int, nrows:int|None=None, *, outer_fill_first:bool=
     with 0° for the leftmost seats, 90° for the center and 180° for the rightmost.
 
     outer_fill_first is the legacy dense_rows
+    It means that as many innermost rows as possible are emptied, and the remaining seats
+    are distributed proportionally among the outer rows.
     """
     # _seat_radius is in the same unit as the coordinates
     # TODO: figure out if _seat_radius is relevant or should be removed
@@ -68,34 +70,28 @@ def get_seats_centers(nseats:int, nrows:int|None=None, *, outer_fill_first:bool=
         _seat_radius = 1 / (4*nrows - 2)
 
     maxed_rows = _cached_get_rows_from_number_of_rows(nrows)
-    filling_ratio = nseats/sum(maxed_rows)
 
     if outer_fill_first:
         rows = list(maxed_rows)
-        while sum(rows)>nseats:
+        while sum(rows[1:]) >= nseats:
             rows.pop(0)
-
-        # here, rows represents the rows which will be fully filled,
+        # here, rows represents the rows which are enough to contain nseats,
         # and their number of seats
 
-        # this row will be the only one to be partially filled
-        # the innermore ones are empty, the outermore ones are fully filled
-        starting_row = nrows-len(rows)-1
-        seats_on_starting_row = nseats-sum(rows)
+        # this row will be the first one to be filled
+        # the innermore ones are empty
+        starting_row = nrows-len(rows)
+        filling_ratio = nseats/sum(rows)
         del rows
     else:
         starting_row = 0
+        filling_ratio = nseats/sum(maxed_rows)
 
     positions = []
     for r in range(starting_row, nrows):
         if r == nrows-1: # if it's the last, outermost row
             # fit all the remaining seats
             nseats_this_row = nseats-len(positions)
-        elif outer_fill_first:
-            if r == starting_row:
-                nseats_this_row = seats_on_starting_row
-            else:
-                nseats_this_row = maxed_rows[r]
         else:
             # fullness of the diagram times the maximum number of seats in the row
             nseats_this_row = round(filling_ratio * maxed_rows[r])
