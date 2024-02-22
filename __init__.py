@@ -17,7 +17,8 @@ def get_rows_from_number_of_rows(nrows:int)->list[int]:
     # and one half-annulus outside it,
     # the innermost row lies on the border between the two,
     # and the outermost row lies entirely inside the half-annulus.
-    # So, looking at the line cutting those in half (the bottom border of the diagram),
+    # So, looking at the line cutting the circle and the annulus in half
+    # (which is the bottom border of the diagram),
     # all rows minus one half of the innermost are on the left, same on the right,
     # and the radius of the void at the center is equal to that value again.
     # So, total = 4 * (nrows-.5) = 4*nrows - 2
@@ -98,6 +99,8 @@ def get_seats_centers(nseats:int, nrows:int|None=None, *, outer_fill_first:bool=
         else:
             # fullness of the diagram times the maximum number of seats in the row
             nseats_this_row = round(filling_ratio * maxed_rows[r])
+            # actually more precise rounding : avoid rounding errors to accumulate too much
+            # nseats_this_row = round((nseats-len(positions)) * maxed_rows[r]/sum(maxed_rows[r:]))
 
         # row radius : the radius of the circle crossing the center of each seat in the row
         R = .5 + 2*r*_seat_radius
