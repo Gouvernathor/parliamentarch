@@ -47,16 +47,16 @@ def _cached_get_rows_from_nrows(nrows: int, span_angle: float = _default_span_an
     """
     return tuple(get_rows_from_nrows(nrows, span_angle))
 
-def get_nrows_from_nseats(nseats: int) -> int:
+def get_nrows_from_nseats(nseats: int, span_angle: float = _default_span_angle) -> int:
     """
     Returns the minimal number of rows necessary to contain nseats seats.
     """
     i = 1
-    while sum(_cached_get_rows_from_nrows(i)) < nseats:
+    while sum(_cached_get_rows_from_nrows(i, span_angle)) < nseats:
         i += 1
     return i
 
-_cached_nrows_from_nseats = FactoryDict(get_nrows_from_nseats)
+_cached_get_nrows_from_nseats = functools.cache(get_nrows_from_nseats)
 
 
 class FillingStrategy(enum.StrEnum):
@@ -110,7 +110,7 @@ def get_seats_centers(nseats: int, *,
     It defaults to 180° to make a true hemicycle.
     Values above 180° are not supported.
     """
-    nrows = max(min_nrows, _cached_nrows_from_nseats[nseats])
+    nrows = max(min_nrows, _cached_get_nrows_from_nseats(nseats, span_angle))
     # thickness of a row in the same unit as the coordinates
     row_thicc = 1 / (4*nrows - 2)
     seat_radius = row_thicc * seat_radius_factor
