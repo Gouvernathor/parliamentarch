@@ -5,6 +5,12 @@ import math
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
 _default_span_angle = 180
 
+def _get_row_thickness(nrows: int) -> float:
+    """
+    Returns the thickness of a row in the same unit as the coordinates.
+    """
+    return 1 / (4*nrows - 2)
+
 def get_rows_from_nrows(nrows: int, span_angle: float = _default_span_angle) -> list[int]:
     """
     This indicates the maximal number of seats for each row for a given number of rows.
@@ -16,7 +22,7 @@ def get_rows_from_nrows(nrows: int, span_angle: float = _default_span_angle) -> 
 
     # thickness of a row (as an annulus) compared to the outer diameter of the hemicycle
     # this is equal to the diameter of a single seat
-    rad = 1 / (4*nrows - 2)
+    rad = _get_row_thickness(nrows)
     # if you divide the half-disk of the hemicycle
     # into one half-disk of half the radius
     # and one half-annulus outside it,
@@ -108,7 +114,7 @@ def get_seats_centers(nseats: int, *,
     """
     nrows = max(min_nrows, _cached_get_nrows_from_nseats(nseats, span_angle))
     # thickness of a row in the same unit as the coordinates
-    row_thicc = 1 / (4*nrows - 2)
+    row_thicc = _get_row_thickness(nrows)
     seat_radius = row_thicc * seat_radius_factor
     span_angle_margin = (1 - span_angle/180)*math.pi /2
 
