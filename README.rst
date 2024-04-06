@@ -9,8 +9,8 @@ Base math and layout
 The idea is to lay a certain number of seats in the form of a hemicycle. The
 shape we're after can be mathematically described as follows:
 
-- Take two concentric circles, and considet the area between the two, which is
-  called an annulus.
+- Take two concentric circles where the outer one's radius is twice the inner's
+- Consider the area between the two, which is called an annulus.
 - Cut the annulus in half, following a diameter of the larger circle.
 
 The result is the hemicycle. Now, to place the seats so that they make the form
@@ -20,21 +20,18 @@ of the hemicycle:
   orientation, and with the cut diameter being on the bottom (the top left and
   top right corners of the rectangle are empty).
 - The seats will placed in rows, such that:
-  - Each seat is described from two concentric circles, with one bigger actual
-    radius and one smaller apparent radius, respectively. The apparent radius
-    divided by the actual radius makes the "seat radius factor", which may be 1
-    in which case the two radii are equal (radii is the plural of radius).
   - The rows are semicircular arcs concentric to the inner and outer arcs.
-  - The difference between the radii of two consecutive rows is a constant.
-  - The actual diameter of the seats is equal to that constant.
+  - The difference between the radii of two consecutive rows is a constant
+    called the "row thickness" (radii is the plural of radius).
+  - The seat are circles (or disk) of equal radius. That radius divided by the
+    row thickness makes the "seat radius factor".
   - The center of a seat is on the arc of that seat's row.
   - In a given row, the distance between two neighboring seats is a constant.
   - The innermost row's arc is the inner arc.
-  - The outermost row's arc's radius is equal to the outer arc's radius minus
-    the big radius of a seat, so that no seat may overlap the outer arc.
+  - The radius of the outermost row's arc is equal to the radius of the outer
+    arc minus the row thickness, such that no seat may overlap the outer arc.
   - The bottom-most seats of each row, which means the first and last seat of
-    each row, are placed such that their apparent circumferences are tangent to
-    the bottom of the rectangle.
+    each row, are tangent to the bottom of the rectangle.
   - When only one seat is placed in a row, the previous rule does not apply and
     the seat is placed at the horizontal center of the diagram.
 
@@ -110,6 +107,7 @@ to a seat's center. The tuple elements are ``(angle, x, y)``, where:
 Todos and future features
 -------------------------
 
+- Expose the seat radius in the same unit as the coordinates
 - Add a submodule for SVG export
 - Add the option for all rows to contain an even number of seats
 - Add a CLI for SVG files generation
