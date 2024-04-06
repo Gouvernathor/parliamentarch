@@ -2,6 +2,8 @@ import enum
 import functools
 import math
 
+from .util import UnPicklable
+
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
 _default_span_angle = 180
 
@@ -84,16 +86,13 @@ class FillingStrategy(enum.StrEnum):
     Fills up the rows as much as possible, starting with the outermost ones.
     """
 
-class _SeatsCenterContainer(dict[tuple[float, float], float]):
+class _SeatsCenterContainer(dict[tuple[float, float], float], UnPicklable):
     seat_radius_factor: float
     nrows: int
 
     @property
     def seat_actual_radius(self):
         return self.seat_radius_factor * _get_row_thickness(self.nrows)
-
-    def __reduce__(self):
-        raise NotImplementedError("get_seats_centers return value is not picklable")
 
 def get_seats_centers(nseats: int, *,
                       min_nrows: int = 0,

@@ -6,3 +6,7 @@ class FactoryDict(dict):
     def __missing__(self, key):
         self[key] = value = self.default_factory(key)
         return value
+
+class UnPicklable:
+    def __reduce__(self):
+        raise TypeError(f"{self.__class__.__name__} is not picklable")
