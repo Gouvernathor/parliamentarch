@@ -2,8 +2,6 @@ import enum
 import functools
 import math
 
-from .util import FactoryDict
-
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
 _default_span_angle = 180
 
