@@ -84,25 +84,16 @@ class FillingStrategy(enum.StrEnum):
     Fills up the rows as much as possible, starting with the outermost ones.
     """
 
-class _SeatsCenterContainer:
+class _SeatsCenterContainer(dict[tuple[float, float], float]):
     seat_radius_factor: float
     nrows: int
-    _seats: list[tuple[float, float, float]]
-
-    @property
-    def pairs(self):
-        for angle, x, y in self._seats:
-            yield x, y
-    @property
-    def triples(self):
-        yield from self._seats
 
     @property
     def seat_actual_radius(self):
         return self.seat_radius_factor * _get_row_thickness(self.nrows)
 
-    def sort(self, *args, **kwargs):
-        self._seats.sort(*args, **kwargs)
+    def __reduce__(self):
+        raise NotImplementedError("get_seats_centers return value is not picklable")
 
 def get_seats_centers(nseats: int, *,
                       min_nrows: int = 0,
@@ -174,7 +165,7 @@ def get_seats_centers(nseats: int, *,
         case _:
             raise ValueError(f"Unrecognized strategy : {filling_strategy}")
 
-    positions = []
+    positions = _SeatsCenterContainer()
     for r in range(starting_row, nrows):
         if r == nrows-1: # if it's the last, outermost row
             # fit all the remaining seats
@@ -206,14 +197,12 @@ def get_seats_centers(nseats: int, *,
         # keeping in mind that the same elevation on start and end limits that remaining place to less than 2pi
 
         if nseats_this_row == 1:
-            positions.append((math.pi/2, 1., R))
+            positions[1., R] = math.pi/2
         else:
             for s in range(nseats_this_row):
                 angle = angle_margin + s*angle_increment
-                positions.append((angle, R*math.cos(angle)+1, R*math.sin(angle)))
+                positions[R*math.cos(angle)+1, R*math.sin(angle)] = angle
 
-    rv = _SeatsCenterContainer()
-    rv.seat_radius_factor = seat_radius_factor
-    rv.nrows = nrows
-    rv._seats = positions
-    return rv
+    positions.seat_radius_factor = seat_radius_factor
+    positions.nrows = nrows
+    return positions

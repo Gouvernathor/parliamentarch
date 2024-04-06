@@ -103,37 +103,27 @@ the functions above:
 - `seat_radius_factor`: The ratio of the seats radius over the row thickness.
   Defaults to 1, which makes the seats touch their lateral neighbors.
 
-The function returns an object representing the ensemble of
-seats, with the following characteristics:
+The function returns a dict-like object representing the ensemble of seats. The
+keys are ``(x, y)``, the cartesian coordinates of the center of the seat. The
+coordinates start from the bottom-left corner of the rectangle, with the x axis
+pointing right and the y axis pointing up. The radius of the outermost circle
+(or of the outermost row) is 1, so x goes from 0 to 2 and y goes from 0 to 1.
 
-- ``pairs``: returns an iterable of ``(x, y)`` cartesian coordinates for each
-  seat. The coordinates start from the bottom-left corner of the rectangle,
-  with the x axis pointing right and the y axis pointing up. The radius of the
-  outermost circle (or of the outermost row) is 1, so x goes from 0 to 2 and y
-  goes from 0 to 1. Generates a new iterable each time it is queried.
-- ``triples``: returns an iterable of ``(angle, x, y)`` tuples for each seat. x
-  and y are as above, and the angle is in radians, calculated from the
-  left-outermost point of the annulus arc, to the center of the arcs, to the
-  center of the seat. Generates a new iterable each time it is queried.
-- ``sort(*args, **kwargs)``: sorts the seats in-place. The arguments are the
-  same as for ``sorted(triples, *args, **kwargs)``. All following ``pairs`` and
-  ``triples`` are sorted that way. Existing iterables returned by ``pairs`` and
-  ``triples`` should be considered invalid unless saved in a list. Calling
-  ``sort(reverse=True)`` sorts the seats from left to right.
+The values of each entry is the angle of the seats, in radians, calculated from the left-outermost point of the annulus arc, to the center of the arcs, to the center of the seat. The seats are initially ordered from the inner rows to the outers, and left to right, though that may change in future versions.
+
+In addition, the return value has the following attributes:
+
 - ``seat_actual_radius``: the radius of the seats, in the same unit as the
   coordinates.
 - ``nrows``: as passed to the function.
 - ``seat_radius_factor``: as passed to the function.
 
-Before calling the sort method, the seats are ordered from the inner rows to
-the outers, and left to right, though it may change in future versions.
+Calling ``sorted(di, key=di.get)`` will return a list of the seats
+arranged from left to right.
 
 Todos and future features
 -------------------------
 
-- Use a dict from coordinates to angle as the main return value of
-  get_seats_centers (with additional seats radius infos), let people sort it by
-  themselves
 - Add a submodule for SVG export
 - Add the option for all rows to contain an even number of seats
 - Add a CLI for SVG files generation
