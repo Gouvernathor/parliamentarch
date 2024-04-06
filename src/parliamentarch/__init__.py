@@ -75,9 +75,7 @@ class FillingStrategy(enum.StrEnum):
     """
 
     OUTER_PRIORITY = enum.auto(), """
-    Fills up as many outermost rows as possible,
-    then puts the remaining seats in the outermost remaining row.
-    Incrementing the number of seats fills that row, then the next inner one, and so on.
+    Fills up the rows as much as possible, starting with the outermost ones.
     """
 
 def get_seats_centers(nseats: int, *,
