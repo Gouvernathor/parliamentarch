@@ -62,18 +62,18 @@ layout of the hemicycle. Among them:
 Main module contents
 --------------------
 
-``get_nrows_from_nseats(nseats: int, span_angle: float = 180.) -> int``
+``parliamentarch.get_nrows_from_nseats(nseats: int, span_angle: float = 180.) -> int``
 
 Returns the minimum number of rows required to hold the given number of seats,
 in a diagram with the given span angle.
 
-``get_rows_from_nrows(nrows: int, span_angle: float = 180.) -> list[int]``
+``parliamentarch.get_rows_from_nrows(nrows: int, span_angle: float = 180.) -> list[int]``
 
 From a given number of rows (and span angle), returns a list of each row's
 maximum seat capacity, starting from inner to outer. The list is increasing and
 its length is the number of rows.
 
-``FillingStrategy``
+``parliamentarch.FillingStrategy``
 
 This is an enumeration of the different implemented strategies to fill the seats
 among the rows. The strategies are:
@@ -92,7 +92,7 @@ among the rows. The strategies are:
   capacity, starting with the outermost rows going in. The result is that given
   a number of rows, adding one seat makes a change in only one row.
 
-``get_seats_from_nseats(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
+``parliamentarch.get_seats_from_nseats(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
 
 This is the main function. Other than self-explanatory parameters similar to
 the functions above:
@@ -124,11 +124,81 @@ In addition, the return value has the following attributes:
 Calling ``sorted(di, key=di.get)`` will return a list of the seats
 arranged from left to right.
 
+SVG submodule content
+---------------------
+
+``SeatData(data, color, border_size, border_color)``
+
+A class representing how to display a given seat or set of seats.
+
+- ``data: str``: metadata about the group of seats, which will end up in the
+  SVG file.
+- ``color: Color``: the color with which to fill the seat circles. This may take
+  any number of formats: a "#RGB", "#RRGGBB", "#RGBA" or "#RRGGBBAA" string, a
+  RBG ``tuple[int, int, int]``, or a RGBA ``tuple[int, int, int, int]`` with
+  ints between 0 and 255.
+- ``border_size: float``: the size of the border around the seat circle. (to be
+  documented at greater length)
+- ``border_color: Color``: the color of the border.
+
+``parliamentarch.svg.write_svg(file, seat_centers, seat_actual_radius, canvas_size=175, margins=5., write_number_of_seats=True)``
+
+This function writes an SVG file representing a hemicycle to the given file-like
+object. The parameters are as follows:
+
+- ``file: io.TextIOBase``: a file-like object open in text mode.
+- ``seat_centers: dict[tuple[float, float], SeatData]``: a mapping from the
+  (x, y) coordinates of each seat's center to a SeatData object.
+- ``seat_actual_radius: float``: the radius of the seats, as output by
+  ``get_seats_from_nseats``.
+- ``canvas_size: float``: the height of the 2:1 rectangle in which the hemicycle
+  will be drawn.
+- ``margins: float|tuple[float, float]|tuple[float, float, float, float]``:
+  the margins around that rectangle. If four values are given, they are the
+  left, top, right, and bottom margins, in that order. If two values are given,
+  they are the horizontal and vertical margins, in that order. If one value is
+  given, it is used for all four margins.
+- ``write_number_of_seats: bool``: whether to write the total number of seats at
+  the bottom center of the diagram - in the well of the House.
+
+``parliamentarch.svg.write_grouped_svg(file, seat_centers_by_group, *args, **kwargs)``
+
+This takes the relationship between seats and SeatData a different way, which is
+way more optimized both in SVG file size and in time. The other parameters are
+the same.
+
+- ``seat_centers_by_group: dict[SeatData, list[tuple[float, float]]]``: a
+  mapping from the SeatData of a group of seats to a list of (x, y) seat center
+  coordinates as output by ``get_seats_from_nseats``.
+
+These two functions have equivalents which return the content of the SVG file a
+string. They take the same parameters except for the ``file``, and are named
+``parliamentarch.svg.get_svg`` and ``parliamentarch.svg.get_grouped_svg``.
+
+``parliamentarch.svg.dispatch_seats(group_seats, seats)``
+
+A function helps make the transition from
+``parliamentarch.get_seats_from_nseats``'s output to the way
+``parliamentarch.svg.write_grouped_svg`` expects it:
+
+- ``group_seats: dict[SeatData, int]``: a mapping from the SeatData of a group
+  of seats to the number of seats in that group. Key ordering matters.
+- ``seats: Iterable[S]``: an iterable of seats in whatever format, but intended
+  to be (x, y) tuples. Its length must be the sum of the values of
+  ``group_seats``. Its ordering matters.
+
+It returns a ``dict[SeatData, list[S]]``. Typically the groups are ordered from
+left to right, and the seats are ordered from left to right.
+``sorted(di, key=di.get)`` helps with that.
+
+SeatData and dispatch_seats may be moved to another module in the future.
+
 Todos and future features
 -------------------------
 
 - Add LICENSE
-- Add the option for all rows to contain an even number of seats
-- Add a submodule for SVG export
+- Add the option to force all rows to contain an even number of seats
+- Enquire about the unsure_param in svg
+- Maybe add support for named colors, if acceptable in SVG
 - Add a CLI for SVG files generation
 - Make a french LISEZMOI
