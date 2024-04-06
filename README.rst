@@ -109,7 +109,10 @@ coordinates start from the bottom-left corner of the rectangle, with the x axis
 pointing right and the y axis pointing up. The radius of the outermost circle
 (or of the outermost row) is 1, so x goes from 0 to 2 and y goes from 0 to 1.
 
-The values of each entry is the angle of the seats, in radians, calculated from the left-outermost point of the annulus arc, to the center of the arcs, to the center of the seat. The seats are initially ordered from the inner rows to the outers, and left to right, though that may change in future versions.
+The values of each entry is the angle of the seats, in radians, calculated from
+the left-outermost point of the annulus arc, to the center of the arcs, to the
+center of the seat. The seats are initially ordered from the inner rows to the
+outers, and left to right, though that may change in future versions.
 
 In addition, the return value has the following attributes:
 
