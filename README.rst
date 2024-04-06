@@ -127,6 +127,8 @@ arranged from left to right.
 Todos and future features
 -------------------------
 
-- Add a submodule for SVG export
+- Add LICENSE
 - Add the option for all rows to contain an even number of seats
+- Add a submodule for SVG export
 - Add a CLI for SVG files generation
+- Make a french LISEZMOI
