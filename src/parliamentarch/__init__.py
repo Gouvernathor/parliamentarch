@@ -84,12 +84,32 @@ class FillingStrategy(enum.StrEnum):
     Fills up the rows as much as possible, starting with the outermost ones.
     """
 
+class _SeatsCenterContainer:
+    seat_radius_factor: float
+    nrows: int
+    _seats: list[tuple[float, float, float]]
+
+    @property
+    def pairs(self):
+        for angle, x, y in self._seats:
+            yield x, y
+    @property
+    def triples(self):
+        yield from self._seats
+
+    @property
+    def seat_actual_radius(self):
+        return self.seat_radius_factor * _get_row_thickness(self.nrows)
+
+    def sort(self, *args, **kwargs):
+        self._seats.sort(*args, **kwargs)
+
 def get_seats_centers(nseats: int, *,
                       min_nrows: int = 0,
                       filling_strategy: FillingStrategy = FillingStrategy.DEFAULT,
                       seat_radius_factor: float = 1,
                       span_angle: float = _default_span_angle,
-                      ) -> list[tuple[float, float, float]]:
+                      ) -> _SeatsCenterContainer:
     """
     Returns a list of nseats seat centers as (angle, x, y) tuples.
     The canvas is assumed to be of 2 in width and 1 in height, with the y axis pointing up.
@@ -192,5 +212,8 @@ def get_seats_centers(nseats: int, *,
                 angle = angle_margin + s*angle_increment
                 positions.append((angle, R*math.cos(angle)+1, R*math.sin(angle)))
 
-    positions.sort(reverse=True)
-    return positions
+    rv = _SeatsCenterContainer()
+    rv.seat_radius_factor = seat_radius_factor
+    rv.nrows = nrows
+    rv._seats = positions
+    return rv
