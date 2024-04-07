@@ -29,7 +29,8 @@ of the hemicycle:
   - In a given row, the distance between two neighboring seats is a constant.
   - The innermost row's arc is the inner arc.
   - The radius of the outermost row's arc is equal to the radius of the outer
-    arc minus the row thickness, such that no seat may overlap the outer arc.
+    arc minus half of the row thickness, such that no seat may overlap the
+    outer arc.
   - The bottom-most seats of each row, which means the first and last seat of
     each row, are tangent to the bottom of the rectangle.
   - When only one seat is placed in a row, the previous rule does not apply and
