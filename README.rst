@@ -141,7 +141,7 @@ A class representing how to display a given seat or set of seats.
 - ``color: Color``: the color with which to fill the seat circles. This may take
   any number of formats: a "#RGB", "#RRGGBB", "#RGBA" or "#RRGGBBAA" string, a
   RBG ``tuple[int, int, int]``, or a RGBA ``tuple[int, int, int, int]`` with
-  ints between 0 and 255.
+  ints between 0 and 255. CSS color names are also supported.
 - ``border_size: float``: the size of the border around the seat circle. (to be
   documented at greater length)
 - ``border_color: Color``: the color of the border.

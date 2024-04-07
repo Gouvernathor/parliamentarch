@@ -12,15 +12,25 @@ class SeatData(UnPicklable):
     @cached_property
     def sanitized_data(self) -> str:
         return re.sub(r"[^a-zA-Z0-9_-]", "-", self.data)
-    color: Color
+    color: Color|str
     border_size: float
-    border_color: Color
+    border_color: Color|str
 
     def __init__(self, data: str, color, border_size: float, border_color):
         self.data = data
-        self.color = Color.from_any(color)
+        try:
+            self.color = Color.from_any(color)
+        except ValueError:
+            if not isinstance(color, str):
+                raise
+            self.color = color
         self.border_size = border_size
-        self.border_color = Color.from_any(border_color)
+        try:
+            self.border_color = Color.from_any(border_color)
+        except ValueError:
+            if not isinstance(border_color, str):
+                raise
+            self.border_color = border_color
 
 def dispatch_seats[S](
         group_seats: dict[SeatData, int],
@@ -132,8 +142,15 @@ def _write_grouped_svg_seats(
 
         group_border_width = group.border_size * seat_actual_radius * canvas_size
 
+        group_color = group.color
+        if isinstance(group_color, Color):
+            group_color = group_color.hexcode
+        group_border_color = group.border_color
+        if isinstance(group_border_color, Color):
+            group_border_color = group_border_color.hexcode
+
         file.write(f"""\
-        <g style="fill:{group.color.hexcode}; stroke-width:{group_border_width:.2f}; stroke:{group.border_color.hexcode}"
+        <g style="fill:{group_color}; stroke-width:{group_border_width:.2f}; stroke:{group_border_color}"
            id="{block_id}">
             <title>{group.data}</title>
 """)

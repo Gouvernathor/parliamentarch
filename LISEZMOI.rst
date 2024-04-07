@@ -147,7 +147,8 @@ Une classe informant la représentation d'un siège ou d'un groupe de sièges.
 - ``color: Color`` : la couleur de remplissage du cercle représentant le siège.
   Accepte divers formats de données : une string "#RGB", "#RRGGBB", "#RGBA" ou
   "#RRGGBBAA", un ``tuple[int, int, int]`` RGB, ou un
-  ``tuple[int, int, int, int]`` RGBA avec des entiers entre 0 et 255.
+  ``tuple[int, int, int, int]`` RGBA avec des entiers entre 0 et 255. Les noms
+  de couleurs CSS sont aussi acceptés.
 - ``border_size: float`` : la taille de la bordure du cercle représentant le
   siège. (à documenter avec plus de détails)
 - ``border_color: Color`` : la couleur de la bordure.
