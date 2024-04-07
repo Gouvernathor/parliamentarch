@@ -103,7 +103,7 @@ rangées. Les stratégies implémentées sont les suivantes :
   maximale, de l'extérieur vers l'intérieur. Le résultat est qu'avec un nombre
   donné de rangées, ajouter un siège ne modifie qu'une seule rangée.
 
-``parliamentarch.get_seats_from_nseats(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> List[Tuple[float, float]]``
+``parliamentarch.get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> List[Tuple[float, float]]``
 
 La fonction principale. En-dehors des paramètres évidents ou équivalents aux fonctions précédentes :
 
@@ -157,7 +157,7 @@ descripteur de fichier fourni. Les paramètres sont comme suit :
 - ``seat_centers: dict[tuple[float, float], SeatData]`` : un dictionnaire des
   coordonnées (x, y) des centres des sièges vers des objets SeatData.
 - ``seat_actual_radius: float`` : le rayon des sièges, tel que renvoyé par
-  ``get_seats_from_nseats``.
+  ``get_seats_centers``.
 - ``canvas_size: float`` : la hauteur du rectangle 2:1 dans lequel l'hémicycle
   est inscrit.
 - ``margins: float|tuple[float, float]|tuple[float, float, float, float]`` : les
@@ -179,7 +179,7 @@ identiques.
 - ``seat_centers_by_group: dict[SeatData, list[tuple[float, float]]]`` : un
   dictionnaire des objets SeatData d'un groupe de sièges vers une liste de
   coordonnées (x, y) des centres des sièges telles que fournies par la fonction
-  ``get_seats_from_nseats``.
+  ``get_seats_centers``.
 
 Ces deux fonctions ont des équivalents qui renvoient le contenu du fichier SVG
 sous forme de chaîne de caractères. Elles prennent les mêmes paramètres, sauf
@@ -188,7 +188,7 @@ sous forme de chaîne de caractères. Elles prennent les mêmes paramètres, sau
 
 ``parliamentarch.svg.dispatch_seats(group_seats, seats) -> dict[SeatData, list[S]]``
 
-Une fonction qui aide le passage de ``parliamentarch.get_seats_from_nseats`` à
+Une fonction qui aide le passage de ``parliamentarch.get_seats_centers`` à
 ``parliamentarch.svg.write_grouped_svg`` :
 
 - ``group_seats: dict[SeatData, int]`` : un dictionnaire de l'objet SeatData

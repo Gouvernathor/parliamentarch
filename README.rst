@@ -95,7 +95,7 @@ among the rows. The strategies are:
   capacity, starting with the outermost rows going in. The result is that given
   a number of rows, adding one seat makes a change in only one row.
 
-``parliamentarch.get_seats_from_nseats(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
+``parliamentarch.get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
 
 This is the main function. Other than self-explanatory parameters similar to
 the functions above:
@@ -154,7 +154,7 @@ object. The parameters are as follows:
 - ``seat_centers: dict[tuple[float, float], SeatData]``: a mapping from the
   (x, y) coordinates of each seat's center to a SeatData object.
 - ``seat_actual_radius: float``: the radius of the seats, as output by
-  ``get_seats_from_nseats``.
+  ``get_seats_centers``.
 - ``canvas_size: float``: the height of the 2:1 rectangle in which the hemicycle
   will be drawn.
 - ``margins: float|tuple[float, float]|tuple[float, float, float, float]``:
@@ -173,7 +173,7 @@ the same.
 
 - ``seat_centers_by_group: dict[SeatData, list[tuple[float, float]]]``: a
   mapping from the SeatData of a group of seats to a list of (x, y) seat center
-  coordinates as output by ``get_seats_from_nseats``.
+  coordinates as output by ``get_seats_centers``.
 
 These two functions have equivalents which return the content of the SVG file a
 string. They take the same parameters except for the ``file``, and are named
@@ -182,7 +182,7 @@ string. They take the same parameters except for the ``file``, and are named
 ``parliamentarch.svg.dispatch_seats(group_seats, seats) -> dict[SeatData, list[S]]``
 
 A function helps make the transition from
-``parliamentarch.get_seats_from_nseats``'s output to the way
+``parliamentarch.get_seats_centers``'s output to the way
 ``parliamentarch.svg.write_grouped_svg`` expects it:
 
 - ``group_seats: dict[SeatData, int]``: a mapping from the SeatData of a group
