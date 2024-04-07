@@ -26,13 +26,14 @@ class Color(NamedTuple):
     def from_any(cls, o):
         if isinstance(o, cls):
             return o
-        if isinstance(o, Sequence) and len(o) in (3, 4):
-            return cls(*o)
         if isinstance(o, str):
-            if o.startswith("#"):
-                o = o[1:]
-            if len(o) in (3, 4):
-                o = "".join(2*c for c in o)
-            if len(o) in (6, 8):
-                return cls(*(int(o[i:i+2], 16) for i in range(0, len(o), 2)))
+            oo = o
+            if oo.startswith("#"):
+                oo = oo[1:]
+            if len(oo) in (3, 4):
+                oo = "".join(2*c for c in oo)
+            if len(oo) in (6, 8):
+                return cls(*(int(oo[i:i+2], 16) for i in range(0, len(oo), 2)))
+        elif isinstance(o, Sequence) and len(o) in (3, 4):
+            return cls(*o)
         raise ValueError(f"Cannot convert {o!r} to a {cls.__name__}")
