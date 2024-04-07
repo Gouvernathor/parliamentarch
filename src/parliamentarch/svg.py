@@ -76,10 +76,11 @@ def write_svg(
 def write_grouped_svg(
         file: TextIOBase,
         seat_centers_by_group: dict[SeatData, list[tuple[float, float]]],
-        seat_actual_radius: float,
+        seat_actual_radius: float, *,
         canvas_size: float = 175,
         margins: float|tuple[float, float]|tuple[float, float, float, float] = 5.,
         write_number_of_seats: bool = True,
+        font_size_factor: float = 36/175,
         ) -> None:
     """
     The margins is either a single value for all four sides,
@@ -100,8 +101,9 @@ def write_grouped_svg(
         width=left_margin+2*canvas_size+right_margin,
         height=top_margin+canvas_size+bottom_margin)
     if write_number_of_seats:
+        font_size = round(font_size_factor * canvas_size)
         _write_svg_number_of_seats(file, sum(map(len, seat_centers_by_group.values())),
-            x=left_margin+canvas_size, y=top_margin+canvas_size)
+            x=left_margin+canvas_size, y=top_margin+canvas_size, font_size=font_size)
     _write_grouped_svg_seats(file, seat_centers_by_group, seat_actual_radius,
         canvas_size=canvas_size, left_margin=left_margin, top_margin=top_margin)
     _write_svg_footer(file)
@@ -116,10 +118,15 @@ def _write_svg_header(file: TextIOBase, width: float, height: float) -> None:
     <g>
 """)
 
-def _write_svg_number_of_seats(file: TextIOBase, nseats: int, x: float, y: float) -> None:
+def _write_svg_number_of_seats(
+        file: TextIOBase,
+        nseats: int,
+        x: float, y: float,
+        font_size: int,
+        ) -> None:
     file.write(f"""\
         <text x="{x}" y="{y}"
-              style="font-size:36px;font-weight:bold;text-align:center;text-anchor:middle;font-family:sans-serif">{nseats}</text>
+              style="font-size:{font_size}px;font-weight:bold;text-align:center;text-anchor:middle;font-family:sans-serif">{nseats}</text>
 """)
 
 def _write_grouped_svg_seats(

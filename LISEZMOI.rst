@@ -153,7 +153,7 @@ Une classe informant la représentation d'un siège ou d'un groupe de sièges.
   siège. (à documenter avec plus de détails)
 - ``border_color: Color`` : la couleur de la bordure.
 
-``parliamentarch.svg.write_svg(file, seat_centers, seat_actual_radius, canvas_size=175, margins=5., write_number_of_seats=True)``
+``parliamentarch.svg.write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
 
 Cette fonction écrit un fichier SVG représentant un hémicycle à l'objet
 descripteur de fichier fourni. Les paramètres sont comme suit :
@@ -173,6 +173,10 @@ descripteur de fichier fourni. Les paramètres sont comme suit :
   quatre marges.
 - ``write_number_of_seats: bool`` : si le nombre total de sièges est inscrit en
   bas au milieu du diagramme - au niveau du perchoir.
+- ``font_size_factor: float`` : un facteur à modifier pour changer la taille de
+  police du nombre de sièges. La valeur par défaut est proche de 0.2. Garder
+  cette valeur constante gardera la taille de police à la même échelle quand
+  ``canvas_size`` change.
 
 ``parliamentarch.svg.write_grouped_svg(file, seat_centers_by_group, *args, **kwargs)``
 

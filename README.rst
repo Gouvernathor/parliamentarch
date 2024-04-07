@@ -146,7 +146,7 @@ A class representing how to display a given seat or set of seats.
   documented at greater length)
 - ``border_color: Color``: the color of the border.
 
-``parliamentarch.svg.write_svg(file, seat_centers, row_thickness, seat_radius_factor, canvas_size=175, margins=5., write_number_of_seats=True)``
+``parliamentarch.svg.write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
 
 This function writes an SVG file representing a hemicycle to the given file-like
 object. The parameters are as follows:
@@ -164,6 +164,9 @@ object. The parameters are as follows:
   given, it is used for all four margins.
 - ``write_number_of_seats: bool``: whether to write the total number of seats at
   the bottom center of the diagram - in the well of the House.
+- ``font_size_factor: float``: a factor you should tweak to change the font size
+  of the number of seats. The default value is around 0.2. Keeping this constant
+  will keep the font size in scale when changing the canvas size.
 
 ``parliamentarch.svg.write_grouped_svg(file, seat_centers_by_group, *args, **kwargs)``
 
