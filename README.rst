@@ -200,8 +200,8 @@ Todos and future features
 -------------------------
 
 - Add LICENSE
+- Add tests
 - Add the option to force all rows to contain an even number of seats
 - Enquire about the unsure_param in svg
 - Maybe add support for named colors, if acceptable in SVG
 - Add a CLI for SVG files generation
-- Make a french LISEZMOI
