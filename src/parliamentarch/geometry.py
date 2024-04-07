@@ -5,7 +5,7 @@ import math
 from .util import UnPicklable
 
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
-_default_span_angle = 180
+_DEFAULT_SPAN_ANGLE = 180
 
 def _get_row_thickness(nrows: int) -> float:
     """
@@ -13,7 +13,7 @@ def _get_row_thickness(nrows: int) -> float:
     """
     return 1 / (4*nrows - 2)
 
-def get_rows_from_nrows(nrows: int, span_angle: float = _default_span_angle) -> list[int]:
+def get_rows_from_nrows(nrows: int, span_angle: float = _DEFAULT_SPAN_ANGLE) -> list[int]:
     """
     This indicates the maximal number of seats for each row for a given number of rows.
     Returns a list of number of seats per row, from inner to outer.
@@ -47,13 +47,13 @@ def get_rows_from_nrows(nrows: int, span_angle: float = _default_span_angle) -> 
     return rv
 
 @functools.cache
-def _cached_get_rows_from_nrows(nrows: int, span_angle: float = _default_span_angle) -> tuple[int, ...]:
+def _cached_get_rows_from_nrows(nrows: int, span_angle: float = _DEFAULT_SPAN_ANGLE) -> tuple[int, ...]:
     """
     Returns tuples to avoid cache mutation issues.
     """
     return tuple(get_rows_from_nrows(nrows, span_angle))
 
-def get_nrows_from_nseats(nseats: int, span_angle: float = _default_span_angle) -> int:
+def get_nrows_from_nseats(nseats: int, span_angle: float = _DEFAULT_SPAN_ANGLE) -> int:
     """
     Returns the minimal number of rows necessary to contain nseats seats.
     """
@@ -101,7 +101,7 @@ def get_seats_centers(nseats: int, *,
                       min_nrows: int = 0,
                       filling_strategy: FillingStrategy = FillingStrategy.DEFAULT,
                       seat_radius_factor: float = 1,
-                      span_angle: float = _default_span_angle,
+                      span_angle: float = _DEFAULT_SPAN_ANGLE,
                       ) -> _SeatsCenterContainer:
     """
     Returns a list of nseats seat centers as (angle, x, y) tuples.
