@@ -52,7 +52,9 @@ As hinted above, there are several parameters that can be tweaked to change the
 layout of the hemicycle. Among them:
 
 - The span angle of the hemicycle can be set to a value lower than 180° (higher
-  values are not supported).
+  values are not supported). However, values so low as to prevent some row from
+  containing even ones seat are not supported, and may raise errors in future
+  versions.
 - The number of rows can be set higher than the minimum required to hold the
   provided number of seats.
 - The seat radius factor can be changed between 0 and 1, with the seats touching
@@ -79,7 +81,7 @@ its length is the number of rows.
 This is an enumeration of the different implemented strategies to fill the seats
 among the rows. The strategies are:
 
-- ``FillingStrategy.DEFAULT``: The seats distributed proportionally to the
+- ``FillingStrategy.DEFAULT``: The seats are distributed proportionally to the
   maximum number of seats each row can hold. The result is that the lateral
   distance between neighboring seats is close between the rows.
 - ``FillingStrategy.EMPTY_INNER``: This selects as few outermost rows as
@@ -98,17 +100,18 @@ among the rows. The strategies are:
 This is the main function. Other than self-explanatory parameters similar to
 the functions above:
 
-- `min_nrows`: The minimum number of rows to use. Only taken into account if the
-  required number of rows to hold the given number of seats is less than that.
-  Defaults to 0, which means using the minimum number of rows possible.
-- `seat_radius_factor`: The ratio of the seats radius over the row thickness.
-  Defaults to 1, which makes the seats touch their lateral neighbors.
+- ``min_nrows``: The minimum number of rows to use. Only taken into account if
+  the required number of rows to hold the given number of seats is less than
+  that. Defaults to 0, which means using the minimum number of rows possible.
+- ``seat_radius_factor``: The ratio of the seats radius over the row thickness.
+  Defaults to 1, which makes seats touch their neighbors.
 
 The function returns a dict-like object representing the ensemble of seats. The
 keys are ``(x, y)``, the cartesian coordinates of the center of the seat. The
 coordinates start from the bottom-left corner of the rectangle, with the x axis
 pointing right and the y axis pointing up. The radius of the outermost circle
-(or of the outermost row) is 1, so x goes from 0 to 2 and y goes from 0 to 1.
+(equal to the height and half the width of the rectangle) is 1, so x goes from
+0 to 2 and y goes from 0 to 1.
 
 The values of each entry is the angle of the seats, in radians, calculated from
 the left-outermost point of the annulus arc, to the center of the arcs, to the
@@ -122,8 +125,8 @@ In addition, the return value has the following attributes:
 - ``nrows``: as passed to the function.
 - ``seat_radius_factor``: as passed to the function.
 
-Calling ``sorted(di, key=di.get)`` will return a list of the seats
-arranged from left to right.
+Calling ``sorted(di, key=di.get)`` will return a list of the seats arranged from
+left to right.
 
 SVG submodule content
 ---------------------
@@ -176,7 +179,7 @@ These two functions have equivalents which return the content of the SVG file a
 string. They take the same parameters except for the ``file``, and are named
 ``parliamentarch.svg.get_svg`` and ``parliamentarch.svg.get_grouped_svg``.
 
-``parliamentarch.svg.dispatch_seats(group_seats, seats)``
+``parliamentarch.svg.dispatch_seats(group_seats, seats) -> dict[SeatData, list[S]]``
 
 A function helps make the transition from
 ``parliamentarch.get_seats_from_nseats``'s output to the way
@@ -188,9 +191,8 @@ A function helps make the transition from
   to be (x, y) tuples. Its length must be the sum of the values of
   ``group_seats``. Its ordering matters.
 
-It returns a ``dict[SeatData, list[S]]``. Typically the groups are ordered from
-left to right, and the seats are ordered from left to right.
-``sorted(di, key=di.get)`` helps with that.
+Typically the groups are ordered from left to right, and the seats are ordered
+from left to right. ``sorted(di, key=di.get)`` helps with that.
 
 SeatData and dispatch_seats may be moved to another module in the future.
 
