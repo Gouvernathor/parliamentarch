@@ -135,8 +135,8 @@ def _write_grouped_svg_seats(
         file.write(f"""\
         <g style="fill:{group.color.hexcode}; stroke-width:{group_border_width:.2f}; stroke:{group.border_color.hexcode}"
            id="{block_id}">
-            <title>{group.data.encode('utf-8')}</title>
-""") # check encoding
+            <title>{group.data}</title>
+""")
 
         for x, y in seat_centers:
             actual_x = left_margin + canvas_size * x
