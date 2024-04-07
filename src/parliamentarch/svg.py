@@ -7,7 +7,7 @@ from .util import Color, UnPicklable
 
 class SeatData(UnPicklable):
     """Put this somewhere else"""
-    id: int|None
+    id: int|None = None
     data: str
     @cached_property
     def sanitized_data(self) -> str:
