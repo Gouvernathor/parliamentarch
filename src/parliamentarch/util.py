@@ -1,5 +1,4 @@
 from collections.abc import Sequence
-from functools import cached_property
 from typing import NamedTuple
 
 class FactoryDict(dict):
@@ -20,7 +19,7 @@ class Color(NamedTuple):
     g: int
     b: int
     a: int = 255
-    @cached_property
+    @property
     def hexcode(self) -> str:
         return f"#{self.r:02x}{self.g:02x}{self.b:02x}{self.a:02x}"
     @classmethod
