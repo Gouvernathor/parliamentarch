@@ -130,3 +130,76 @@ De plus, la valeur de retour contient les attributs suivants :
 
 Appeler ``sorted(di, key=di.get)`` renvoie la liste des sièges triée de gauche à
 droite.
+
+Contenu du sous-module SVG
+--------------------------
+
+``SeatData(data, color, border_size, border_color)``
+
+Une classe informant la représentation d'un siège ou d'un groupe de sièges.
+
+- ``data: str`` : métadonnées à propos du groupe de sièges, qui finira dans le
+  fichier SVG. Typiquement le nom du parti ou de l'élu.
+- ``color: Color`` : la couleur de remplissage du cercle représentant le siège.
+  Accepte divers formats de données : une string "#RGB", "#RRGGBB", "#RGBA" ou
+  "#RRGGBBAA", un ``tuple[int, int, int]`` RGB, ou un
+  ``tuple[int, int, int, int]`` RGBA avec des entiers entre 0 et 255.
+- ``border_size: float`` : la taille de la bordure du cercle représentant le
+  siège. (à documenter avec plus de détails)
+- ``border_color: Color`` : la couleur de la bordure.
+
+``parliamentarch.svg.write_svg(file, seat_centers, seat_actual_radius, canvas_size=175, margins=5., write_number_of_seats=True)``
+
+Cette fonction écrit un fichier SVG représentant un hémicycle à l'objet
+descripteur de fichier fourni. Les paramètres sont comme suit :
+
+- ``file: io.TextIOBase`` : un fichier ouvert en mode texte.
+- ``seat_centers: dict[tuple[float, float], SeatData]`` : un dictionnaire des
+  coordonnées (x, y) des centres des sièges vers des objets SeatData.
+- ``seat_actual_radius: float`` : le rayon des sièges, tel que renvoyé par
+  ``get_seats_from_nseats``.
+- ``canvas_size: float`` : la hauteur du rectangle 2:1 dans lequel l'hémicycle
+  est inscrit.
+- ``margins: float|tuple[float, float]|tuple[float, float, float, float]`` : les
+  marges autour de ce rectangle. Si quatre valeurs sont données, elles sont la
+  marge gauche, supérieure, droite et inférieure, dans cet ordre. Si deux
+  valeurs sont données, elles sont la marge horizontale et la marge verticale,
+  dans cet ordre. Si une seule valeur est donnée, elle est utilisée pour les
+  quatre marges.
+- ``write_number_of_seats: bool`` : si le nombre total de sièges est inscrit en
+  bas au milieu du diagramme - au niveau du perchoir.
+
+``parliamentarch.svg.write_grouped_svg(file, seat_centers_by_group, *args, **kwargs)``
+
+Cette fonction prend d'une manière différente la relation entre les sièges et
+les objets SeatData, une manière bien plus optimisée tant sur la taille du
+fichier SVG généré que sur le temps de calcul. Les autres paramètres sont
+identiques.
+
+- ``seat_centers_by_group: dict[SeatData, list[tuple[float, float]]]`` : un
+  dictionnaire des objets SeatData d'un groupe de sièges vers une liste de
+  coordonnées (x, y) des centres des sièges telles que fournies par la fonction
+  ``get_seats_from_nseats``.
+
+Ces deux fonctions ont des équivalents qui renvoient le contenu du fichier SVG
+sous forme de chaîne de caractères. Elles prennent les mêmes paramètres, sauf
+``file``, et elles s'appellent ``parliamentarch.svg.get_svg`` et
+``parliamentarch.svg.get_grouped_svg``.
+
+``parliamentarch.svg.dispatch_seats(group_seats, seats) -> dict[SeatData, list[S]]``
+
+Une fonction qui aide le passage de ``parliamentarch.get_seats_from_nseats`` à
+``parliamentarch.svg.write_grouped_svg`` :
+
+- ``group_seats: dict[SeatData, int]`` : un dictionnaire de l'objet SeatData
+  d'un groupe de sièges vers le nombre de sièges dans ce groupe. L'ordre des
+  clés compte.
+- ``seats: Iterable[S]`` : un itérable de sièges dans n'importe quel format,
+  typiquement des tuples (x, y). La taille de l'itérable doit être égale à la
+  somme des valeurs de ``group_seats``. L'ordre des données compte.
+
+Typiquement les groupes sont ordonnés de gauche à droite, et les sièges sont
+ordonnés de gauche à droite. ``sorted(di, key=di.get)`` peut aider.
+
+SeatData et dispatch_seats peuvent être déplacées dans un autre module dans une
+version future.

@@ -136,7 +136,7 @@ SVG submodule content
 A class representing how to display a given seat or set of seats.
 
 - ``data: str``: metadata about the group of seats, which will end up in the
-  SVG file.
+  SVG file. Typically the name of the party or of the member.
 - ``color: Color``: the color with which to fill the seat circles. This may take
   any number of formats: a "#RGB", "#RRGGBB", "#RGBA" or "#RRGGBBAA" string, a
   RBG ``tuple[int, int, int]``, or a RGBA ``tuple[int, int, int, int]`` with
