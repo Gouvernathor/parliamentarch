@@ -66,7 +66,8 @@ def write_svg(
 def write_grouped_svg(
         file: TextIOBase,
         seat_centers_by_group: dict[SeatData, list[tuple[float, float]]],
-        seat_actual_radius: float,
+        row_thickness: float,
+        seat_radius_factor: float = .8,
         canvas_size: float = 175,
         margins: float|tuple[float, float]|tuple[float, float, float, float] = 5.,
         write_number_of_seats: bool = True,
@@ -92,7 +93,7 @@ def write_grouped_svg(
     if write_number_of_seats:
         _write_svg_number_of_seats(file, sum(map(len, seat_centers_by_group.values())),
             x=left_margin+canvas_size, y=top_margin+canvas_size)
-    _write_grouped_svg_seats(file, seat_centers_by_group, seat_actual_radius,
+    _write_grouped_svg_seats(file, seat_centers_by_group, row_thickness, seat_radius_factor,
         canvas_size=canvas_size, left_margin=left_margin, top_margin=top_margin)
     _write_svg_footer(file)
 
@@ -115,11 +116,11 @@ def _write_svg_number_of_seats(file: TextIOBase, nseats: int, x: float, y: float
 def _write_grouped_svg_seats(
         file: TextIOBase,
         seat_centers_by_group: dict[SeatData, list[tuple[float, float]]],
-        seat_actual_radius: float,
+        row_thickness: float,
+        seat_radius_factor: float,
         canvas_size: float,
         left_margin: float,
         top_margin: float,
-        unsure_param=.8,
         ) -> None:
 
     group_number_fallback = 0
@@ -131,7 +132,7 @@ def _write_grouped_svg_seats(
 
         block_id = f"{group_number}-{group.sanitized_data}"
 
-        group_border_width = group.border_size * seat_actual_radius * canvas_size * unsure_param
+        group_border_width = group.border_size * row_thickness * canvas_size * seat_radius_factor
 
         file.write(f"""\
         <g style="fill:{group.color.hexcode}; stroke-width:{group_border_width:.2f}; stroke:{group.border_color.hexcode}"
@@ -142,7 +143,7 @@ def _write_grouped_svg_seats(
         for x, y in seat_centers:
             actual_x = left_margin + canvas_size * x
             actual_y = top_margin + canvas_size * (1 - y)
-            actual_radius = seat_actual_radius * canvas_size * unsure_param - group_border_width/2
+            actual_radius = row_thickness * canvas_size * seat_radius_factor - group_border_width/2
             file.write(f"""\
             <circle cx="{actual_x:.2f}" cy="{actual_y:.2f}" r="{actual_radius:.2f}"/>
 """)

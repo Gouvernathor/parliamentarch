@@ -120,6 +120,8 @@ outers, and left to right, though that may change in future versions.
 
 In addition, the return value has the following attributes:
 
+- ``row_thickness``: the thickness of the rows, in the same unit as the
+  coordinates.
 - ``seat_actual_radius``: the radius of the seats, in the same unit as the
   coordinates.
 - ``nrows``: as passed to the function.
@@ -145,7 +147,7 @@ A class representing how to display a given seat or set of seats.
   documented at greater length)
 - ``border_color: Color``: the color of the border.
 
-``parliamentarch.svg.write_svg(file, seat_centers, seat_actual_radius, canvas_size=175, margins=5., write_number_of_seats=True)``
+``parliamentarch.svg.write_svg(file, seat_centers, row_thickness, seat_radius_factor, canvas_size=175, margins=5., write_number_of_seats=True)``
 
 This function writes an SVG file representing a hemicycle to the given file-like
 object. The parameters are as follows:
@@ -153,7 +155,9 @@ object. The parameters are as follows:
 - ``file: io.TextIOBase``: a file-like object open in text mode.
 - ``seat_centers: dict[tuple[float, float], SeatData]``: a mapping from the
   (x, y) coordinates of each seat's center to a SeatData object.
-- ``seat_actual_radius: float``: the radius of the seats, as output by
+- ``row_thickness: float``: the row thickness, as output by
+  ``get_seats_centers``.
+- ``seat_radius_factor: float``: the seat radius factor, as output by
   ``get_seats_centers``.
 - ``canvas_size: float``: the height of the 2:1 rectangle in which the hemicycle
   will be drawn.
