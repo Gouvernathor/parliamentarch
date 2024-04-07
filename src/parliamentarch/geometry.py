@@ -203,6 +203,7 @@ def get_seats_centers(nseats: int, *,
         else:
             for s in range(nseats_this_row):
                 angle = angle_margin + s*angle_increment
+                # an oriented angle, so it goes trig positive (counterclockwise)
                 positions[R*math.cos(angle)+1, R*math.sin(angle)] = angle
 
     positions.seat_radius_factor = seat_radius_factor
