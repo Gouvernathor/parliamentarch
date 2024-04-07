@@ -17,20 +17,18 @@ class SeatData(UnPicklable):
     border_color: Color|str
 
     def __init__(self, data: str, color, border_size: float, border_color):
+        def accepted_color(c):
+            try:
+                return Color.from_any(c)
+            except ValueError:
+                if not isinstance(c, str):
+                    raise
+                return c
+
         self.data = data
-        try:
-            self.color = Color.from_any(color)
-        except ValueError:
-            if not isinstance(color, str):
-                raise
-            self.color = color
+        self.color = accepted_color(color)
         self.border_size = border_size
-        try:
-            self.border_color = Color.from_any(border_color)
-        except ValueError:
-            if not isinstance(border_color, str):
-                raise
-            self.border_color = border_color
+        self.border_color = accepted_color(border_color)
 
 def dispatch_seats[S](
         group_seats: dict[SeatData, int],
@@ -115,8 +113,7 @@ def _write_svg_header(file: TextIOBase, width: float, height: float) -> None:
      xmlns="http://www.w3.org/2000/svg" version="1.1"
      width="{width}" height="{height}">
     <!-- Created with parliamentarch (https://github.com/Gouvernathor/parliamentarch/) -->
-    <g>
-""")
+    <g>""")
 
 def _write_svg_number_of_seats(
         file: TextIOBase,
@@ -124,10 +121,9 @@ def _write_svg_number_of_seats(
         x: float, y: float,
         font_size: int,
         ) -> None:
-    file.write(f"""\
+    file.write(f"""
         <text x="{x}" y="{y}"
-              style="font-size:{font_size}px;font-weight:bold;text-align:center;text-anchor:middle;font-family:sans-serif">{nseats}</text>
-""")
+              style="font-size:{font_size}px;font-weight:bold;text-align:center;text-anchor:middle;font-family:sans-serif">{nseats}</text>""")
 
 def _write_grouped_svg_seats(
         file: TextIOBase,
@@ -156,26 +152,23 @@ def _write_grouped_svg_seats(
         if isinstance(group_border_color, Color):
             group_border_color = group_border_color.hexcode
 
-        file.write(f"""\
+        file.write(f"""
         <g style="fill:{group_color}; stroke-width:{group_border_width:.2f}; stroke:{group_border_color}"
            id="{block_id}">
-            <title>{group.data}</title>
-""")
+            <title>{group.data}</title>""")
 
         for x, y in seat_centers:
             actual_x = left_margin + canvas_size * x
             actual_y = top_margin + canvas_size * (1 - y)
             actual_radius = seat_actual_radius * canvas_size - group_border_width/2
-            file.write(f"""\
-            <circle cx="{actual_x:.2f}" cy="{actual_y:.2f}" r="{actual_radius:.2f}"/>
-""")
+            file.write(f"""
+            <circle cx="{actual_x:.2f}" cy="{actual_y:.2f}" r="{actual_radius:.2f}"/>""")
 
-        file.write("""\
-        </g>
-""")
+        file.write("""
+        </g>""")
 
 def _write_svg_footer(file: TextIOBase) -> None:
-    file.write("""\
+    file.write("""
     </g>
 </svg>
 """)
