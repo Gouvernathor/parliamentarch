@@ -16,7 +16,13 @@ class SeatData(UnPicklable):
     border_size: float
     border_color: Color|str
 
-    def __init__(self, data: str, color, border_size: float, border_color):
+    def __init__(self,
+            data: str,
+            color,
+            border_size: float = 0,
+            border_color="#000",
+            ) -> None:
+
         def accepted_color(c):
             try:
                 return Color.from_any(c)
