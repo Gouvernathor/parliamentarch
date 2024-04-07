@@ -121,6 +121,10 @@ x vers la droite et l'axe y vers le haut. Le rayon de l'arc extérieur (égal à
 hauteur et à la moitié de la largeur du rectangle) est 1, donc x va de 0 à 2 et
 y de 0 à 1.
 
+La valeur pour chaque clé est l'angle, en radian, depuis le point le plus
+extérieur et à gauche de l'arc d'anneau, vers le centre des arcs, jusqu'au
+centre du siège.
+
 De plus, la valeur de retour contient les attributs suivants :
 
 - ``di.seat_actual_radius`` : le rayon des sièges, dans la même unité que les
