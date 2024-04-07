@@ -114,7 +114,7 @@ pointing right and the y axis pointing up. The radius of the outermost circle
 0 to 2 and y goes from 0 to 1.
 
 The value of each entry is the angle, in radians, calculated from the
-left-outermost point of the annulus arc, to the center of the arcs, to the
+right-outermost point of the annulus arc, to the center of the arcs, to the
 center of the seat.
 
 In addition, the return value has the following attributes:
@@ -126,8 +126,8 @@ In addition, the return value has the following attributes:
 - ``nrows``: as passed to the function.
 - ``seat_radius_factor``: as passed to the function.
 
-Calling ``sorted(di, key=di.get)`` will return a list of the seats arranged from
-left to right.
+Calling ``sorted(di, key=di.get, reverse=True)`` will return a list of the seats
+arranged from left to right.
 
 SVG submodule content
 ---------------------
@@ -192,7 +192,7 @@ A function helps make the transition from
   ``group_seats``. Its ordering matters.
 
 Typically the groups are ordered from left to right, and the seats are ordered
-from left to right. ``sorted(di, key=di.get)`` helps with that.
+from left to right. ``sorted(di, key=di.get, reverse=True)`` helps with that.
 
 SeatData and dispatch_seats may be moved to another module in the future.
 

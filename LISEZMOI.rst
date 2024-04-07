@@ -122,7 +122,7 @@ hauteur et à la moitié de la largeur du rectangle) est 1, donc x va de 0 à 2 
 y de 0 à 1.
 
 La valeur pour chaque clé est l'angle, en radian, depuis le point le plus
-extérieur et à gauche de l'arc d'anneau, vers le centre des arcs, jusqu'au
+extérieur et à droite de l'arc d'anneau, vers le centre des arcs, jusqu'au
 centre du siège.
 
 De plus, la valeur de retour contient les attributs suivants :
@@ -132,8 +132,8 @@ De plus, la valeur de retour contient les attributs suivants :
 - ``di.nrows`` : comme passé à la fonction.
 - ``di.seat_radius_factor`` : comme passé à la fonction.
 
-Appeler ``sorted(di, key=di.get)`` renvoie la liste des sièges triée de gauche à
-droite.
+Appeler ``sorted(di, key=di.get, reverse=True)`` renvoie la liste des sièges
+triée de gauche à droite.
 
 Contenu du sous-module SVG
 --------------------------
@@ -203,7 +203,8 @@ Une fonction qui aide le passage de ``parliamentarch.get_seats_centers`` à
   somme des valeurs de ``group_seats``. L'ordre des données compte.
 
 Typiquement les groupes sont ordonnés de gauche à droite, et les sièges sont
-ordonnés de gauche à droite. ``sorted(di, key=di.get)`` peut aider.
+ordonnés de gauche à droite. ``sorted(di, key=di.get, reverse=True)`` peut
+aider.
 
 SeatData et dispatch_seats peuvent être déplacées dans un autre module dans une
 version future.
