@@ -155,10 +155,7 @@ object. The parameters are as follows:
 - ``file: io.TextIOBase``: a file-like object open in text mode.
 - ``seat_centers: dict[tuple[float, float], SeatData]``: a mapping from the
   (x, y) coordinates of each seat's center to a SeatData object.
-- ``row_thickness: float``: the row thickness, as output by
-  ``get_seats_centers``.
-- ``seat_radius_factor: float``: the seat radius factor, as output by
-  ``get_seats_centers``.
+- ``seat_actual_radius: float``: as output by ``get_seats_centers``.
 - ``canvas_size: float``: the height of the 2:1 rectangle in which the hemicycle
   will be drawn.
 - ``margins: float|tuple[float, float]|tuple[float, float, float, float]``:
