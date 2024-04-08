@@ -1,5 +1,6 @@
-from collections.abc import Sequence
-from typing import NamedTuple
+from collections.abc import Container, Sequence
+from io import StringIO
+from typing import Any, NamedTuple
 
 class FactoryDict(dict):
     def __init__(self, default_factory, *args, **kwargs):
@@ -38,3 +39,32 @@ class Color(NamedTuple):
         elif isinstance(o, Sequence) and len(o) in (3, 4):
             return cls(*o)
         raise ValueError(f"Cannot convert {o!r} to a {cls.__name__}")
+
+def get_from_write(write_func):
+    def get(*args, **kwargs) -> str:
+        sio = StringIO()
+        write_func(sio, *args, **kwargs)
+        return sio.getvalue()
+    return get
+
+def filter_kwargs(
+        *sets: Container[str],
+        **kwargs: Any,
+        ) -> list[dict[str, Any]]:
+    """
+    The length of the list is one more than the number of sets passed.
+    The sets may actually be any container.
+    """
+
+    rvdicts = []
+    for s in sets:
+        rvdict = {}
+        # no set operations in order to keep the ordering
+        for k in tuple(kwargs):
+            if k in s:
+                rvdict[k] = kwargs.pop(k)
+        if not kwargs:
+            break
+
+    rvdicts.append(kwargs)
+    return rvdicts

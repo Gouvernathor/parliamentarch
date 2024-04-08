@@ -1,11 +1,11 @@
 from collections.abc import Iterable
 from functools import cached_property
-from io import TextIOBase, StringIO
+from io import TextIOBase
 import re
 
-from .util import Color, UnPicklable
+from .util import Color, UnPicklable as _UnPicklable, get_from_write as _get_from_write
 
-class SeatData(UnPicklable):
+class SeatData(_UnPicklable):
     """Put this somewhere else"""
     id: int|None = None
     data: str
@@ -56,16 +56,6 @@ def dispatch_seats[S](
         rv[group] = [next(its) for _ in range(nseats)]
     return rv
 
-
-def get_svg(*args, **kwargs) -> str:
-    sio = StringIO()
-    write_svg(sio, *args, **kwargs)
-    return sio.getvalue()
-
-def get_grouped_svg(*args, **kwargs) -> str:
-    sio = StringIO()
-    write_grouped_svg(sio, *args, **kwargs)
-    return sio.getvalue()
 
 def write_svg(
         file: TextIOBase,
@@ -178,3 +168,7 @@ def _write_svg_footer(file: TextIOBase) -> None:
     </g>
 </svg>
 """)
+
+
+get_svg = _get_from_write(write_svg)
+get_grouped_svg = _get_from_write(write_grouped_svg)
