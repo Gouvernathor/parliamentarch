@@ -3,9 +3,11 @@ from functools import cached_property
 from io import TextIOBase
 import re
 
-from .util import Color, UnPicklable as _UnPicklable, get_from_write as _get_from_write
+from ._util import Color, UnPicklable, get_from_write
 
-class SeatData(_UnPicklable):
+__all__ = ("SeatData", "dispatch_seats", "write_svg", "write_grouped_svg", "get_svg", "get_grouped_svg")
+
+class SeatData(UnPicklable):
     """Put this somewhere else"""
     id: int|None = None
     data: str
@@ -170,5 +172,5 @@ def _write_svg_footer(file: TextIOBase) -> None:
 """)
 
 
-get_svg = _get_from_write(write_svg)
-get_grouped_svg = _get_from_write(write_grouped_svg)
+get_svg = get_from_write(write_svg)
+get_grouped_svg = get_from_write(write_grouped_svg)

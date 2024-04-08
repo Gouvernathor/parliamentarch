@@ -2,7 +2,9 @@ import enum
 import functools
 import math
 
-from .util import UnPicklable
+from ._util import UnPicklable
+
+__all__ = ("get_rows_from_nrows", "get_nrows_from_nseats", "FillingStrategy", "get_seats_centers")
 
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
 _DEFAULT_SPAN_ANGLE = 180
