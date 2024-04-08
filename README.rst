@@ -202,6 +202,8 @@ SeatData and dispatch_seats may be moved to another module in the future.
 Todos and future features
 -------------------------
 
+- Document the new SVG direct content
+- Move the SVG direct content to the module root, move svg_base to svg, and stop importing geometry into root
 - Add LICENSE
 - Add tests
 - Add the option to force all rows to contain an even number of seats
