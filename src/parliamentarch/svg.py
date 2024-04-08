@@ -1,8 +1,6 @@
-from collections.abc import Container
 from inspect import signature as _signature
-from typing import Any
 
-from . import get_seats_centers as _get_seats_centers
+from .geometry import get_seats_centers as _get_seats_centers
 from .svg_base import *
 from .util import filter_kwargs as _filter_kwargs, get_from_write as _get_from_write
 
