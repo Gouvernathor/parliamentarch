@@ -70,21 +70,23 @@ changer la forme de l'hémicycle.
   rangées peut contenir, différentes stratégies peuvent être suivies pour les
   répartir entre les rangées.
 
-Contenu du module principal
----------------------------
+Contenu du sous-module geometry
+-------------------------------
 
-``parliamentarch.get_nrows_from_nseats(nseats: int, span_angle: float = 180.) -> int``
+Ces éléments se trouvent dans le sous-module ``parliamentarch.geometry``.
+
+``get_nrows_from_nseats(nseats: int, span_angle: float = 180.) -> int``
 
 Renvoie le nombre minimum de rangées nécessaires pour contenir un nombre donné
 de sièges dans un diagramme s'étendant sur un angle donné.
 
-``parliamentarch.get_rows_from_nrows(nrows: int, span_angle: float = 180.) -> List[int]``
+``get_rows_from_nrows(nrows: int, span_angle: float = 180.) -> List[int]``
 
 À partir d'un nombre de rangées donné (et d'un angle d'étendue), renvoie une
 liste du nombre maximum de sièges que chaque rangée peut contenir, de
 l'intérieur vers l'extérieur. La liste est croissante et sa longueur est égale au nombre de rangées.
 
-``parliamentarch.FillingStrategy``
+``FillingStrategy``
 
 Énumération des différentes stratégies de répartition des sièges entre les
 rangées. Les stratégies implémentées sont les suivantes :
@@ -103,7 +105,7 @@ rangées. Les stratégies implémentées sont les suivantes :
   maximale, de l'extérieur vers l'intérieur. Le résultat est qu'avec un nombre
   donné de rangées, ajouter un siège ne modifie qu'une seule rangée.
 
-``parliamentarch.get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> List[Tuple[float, float]]``
+``get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> List[Tuple[float, float]]``
 
 La fonction principale. En-dehors des paramètres évidents ou équivalents aux fonctions précédentes :
 
@@ -138,6 +140,8 @@ triée de gauche à droite.
 Contenu du sous-module SVG
 --------------------------
 
+Ces éléments se trouvent dans le sous-module ``parliamentarch.svg``.
+
 ``SeatData(data, color, border_size, border_color)``
 
 Une classe informant la représentation d'un siège ou d'un groupe de sièges.
@@ -153,7 +157,7 @@ Une classe informant la représentation d'un siège ou d'un groupe de sièges.
   siège. (à documenter avec plus de détails)
 - ``border_color: Color`` : la couleur de la bordure.
 
-``parliamentarch.svg.write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
+``write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
 
 Cette fonction écrit un fichier SVG représentant un hémicycle à l'objet
 descripteur de fichier fourni. Les paramètres sont comme suit :
@@ -178,7 +182,7 @@ descripteur de fichier fourni. Les paramètres sont comme suit :
   cette valeur constante gardera la taille de police à la même échelle quand
   ``canvas_size`` change.
 
-``parliamentarch.svg.write_grouped_svg(file, seat_centers_by_group, *args, **kwargs)``
+``write_grouped_svg(file, seat_centers_by_group, *args, **kwargs)``
 
 Cette fonction prend d'une manière différente la relation entre les sièges et
 les objets SeatData, une manière bien plus optimisée tant sur la taille du
@@ -192,13 +196,12 @@ identiques.
 
 Ces deux fonctions ont des équivalents qui renvoient le contenu du fichier SVG
 sous forme de chaîne de caractères. Elles prennent les mêmes paramètres, sauf
-``file``, et elles s'appellent ``parliamentarch.svg.get_svg`` et
-``parliamentarch.svg.get_grouped_svg``.
+``file``, et elles s'appellent ``get_svg`` et ``get_grouped_svg``.
 
-``parliamentarch.svg.dispatch_seats(group_seats, seats) -> dict[SeatData, list[S]]``
+``dispatch_seats(group_seats, seats) -> dict[SeatData, list[S]]``
 
 Une fonction qui aide le passage de ``parliamentarch.get_seats_centers`` à
-``parliamentarch.svg.write_grouped_svg`` :
+``write_grouped_svg`` :
 
 - ``group_seats: dict[SeatData, int]`` : un dictionnaire de l'objet SeatData
   d'un groupe de sièges vers le nombre de sièges dans ce groupe. L'ordre des

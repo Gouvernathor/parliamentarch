@@ -62,21 +62,23 @@ layout of the hemicycle. Among them:
 - As long as the number of seats is not the maximum number the number of rows
   can hold, different strategies can be chosen to distribute the seats.
 
-Main module contents
---------------------
+Geometry submodule contents
+---------------------------
 
-``parliamentarch.get_nrows_from_nseats(nseats: int, span_angle: float = 180.) -> int``
+These are found in the ``parliamentarch.geometry`` submodule.
+
+``get_nrows_from_nseats(nseats: int, span_angle: float = 180.) -> int``
 
 Returns the minimum number of rows required to hold the given number of seats,
 in a diagram with the given span angle.
 
-``parliamentarch.get_rows_from_nrows(nrows: int, span_angle: float = 180.) -> list[int]``
+``get_rows_from_nrows(nrows: int, span_angle: float = 180.) -> list[int]``
 
 From a given number of rows (and span angle), returns a list of each row's
 maximum seat capacity, starting from inner to outer. The list is increasing and
 its length is the number of rows.
 
-``parliamentarch.FillingStrategy``
+``FillingStrategy``
 
 This is an enumeration of the different implemented strategies to fill the seats
 among the rows. The strategies are:
@@ -95,7 +97,7 @@ among the rows. The strategies are:
   capacity, starting with the outermost rows going in. The result is that given
   a number of rows, adding one seat makes a change in only one row.
 
-``parliamentarch.get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
+``get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
 
 This is the main function. Other than self-explanatory parameters similar to
 the functions above:
@@ -132,6 +134,8 @@ arranged from left to right.
 SVG submodule content
 ---------------------
 
+These are found in the ``parliamentarch.svg`` submodule.
+
 ``SeatData(data, color, border_size, border_color)``
 
 A class representing how to display a given seat or set of seats.
@@ -146,7 +150,7 @@ A class representing how to display a given seat or set of seats.
   documented at greater length)
 - ``border_color: Color``: the color of the border.
 
-``parliamentarch.svg.write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
+``write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
 
 This function writes an SVG file representing a hemicycle to the given file-like
 object. The parameters are as follows:
@@ -168,7 +172,7 @@ object. The parameters are as follows:
   of the number of seats. The default value is around 0.2. Keeping this constant
   will keep the font size in scale when changing the canvas size.
 
-``parliamentarch.svg.write_grouped_svg(file, seat_centers_by_group, *args, **kwargs)``
+``write_grouped_svg(file, seat_centers_by_group, *args, **kwargs)``
 
 This takes the relationship between seats and SeatData a different way, which is
 way more optimized both in SVG file size and in time. The other parameters are
@@ -180,13 +184,13 @@ the same.
 
 These two functions have equivalents which return the content of the SVG file a
 string. They take the same parameters except for the ``file``, and are named
-``parliamentarch.svg.get_svg`` and ``parliamentarch.svg.get_grouped_svg``.
+``get_svg`` and ``get_grouped_svg``.
 
-``parliamentarch.svg.dispatch_seats(group_seats, seats) -> dict[SeatData, list[S]]``
+``dispatch_seats(group_seats, seats) -> dict[SeatData, list[S]]``
 
 A function helps make the transition from
-``parliamentarch.get_seats_centers``'s output to the way
-``parliamentarch.svg.write_grouped_svg`` expects it:
+``parliamentarch.get_seats_centers``'s output to the way ``write_grouped_svg``
+expects it:
 
 - ``group_seats: dict[SeatData, int]``: a mapping from the SeatData of a group
   of seats to the number of seats in that group. Key ordering matters.
