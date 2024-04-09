@@ -238,6 +238,10 @@ Todos and future features
 
 - Document the new SVG direct content
 - Have the main functions support a sequence of SeatData objects using ``dict.fromkeys(seq, 1)``
+- Allow SeatData to take some <a> element properties (like href), and if so use <a> instead of <g>
+- Allow SeatData to contain more creative SVG content like gradients
+  - Maybe give it a .wrap method that wraps the circles in a g or a, and make it subclassable ?
+  - Maybe just give a style method ?
 - Move the SVG direct content to the module root, move svg_base to svg, and stop importing geometry into root
 - Add LICENSE
 - Add tests
