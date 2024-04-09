@@ -70,6 +70,36 @@ changer la forme de l'hémicycle.
   rangées peut contenir, différentes stratégies peuvent être suivies pour les
   répartir entre les rangées.
 
+Contenu du module principal
+---------------------------
+
+Ces éléments se trouvent dans le module ``parliamentarch``.
+
+``SeatData``
+
+Cette classe est définie et expliquée dans le sous-module SVG ci-dessous, mais
+il est exposé au sein du module principal.
+
+``write_svg_from_attribution(file, attrib, **kwargs)``
+
+Cette fonction écrit un fichier SVG représentant un hémicycle dans le fichier
+fourni. Les paramètres sont les suivants :
+
+- ``file: io.TextIOBase`` : un fichier ouvert en mode texte.
+- ``attrib: dict[SeatData, int]`` : un dictionnaire d'objets SeatData
+  s'appliquant à un ensemble de sièges présents dans l'hémicycle, vers le nombre
+  de sièges auxquels l'objet s'applique. Typiquement, chaque objet correspond à
+  un parti ou un groupe. L'ordre des clés a un sens, et les éléments seront
+  disposés de gauche à droite dans l'hémicycle.
+- ``**kwargs`` : tous les paramètres optionnels acceptés par
+  ``parliamentarch.geometry.get_seats_centers`` ou par
+  ``parliamentarch.svg.write_svg`` peuvent être passés à cette fonction.
+
+``get_svg_from_attribution(attrib, **kwargs)``
+
+Au lieu d'écrire dans un fichier, cette fonction renvoie le contenu au format
+SVG dans une chaîne de caractères. Les autres paramètres sont identiques.
+
 Contenu du sous-module geometry
 -------------------------------
 
@@ -159,8 +189,8 @@ Une classe informant la représentation d'un siège ou d'un groupe de sièges.
 
 ``write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
 
-Cette fonction écrit un fichier SVG représentant un hémicycle à l'objet
-descripteur de fichier fourni. Les paramètres sont comme suit :
+Cette fonction écrit un fichier SVG représentant un hémicycle dans le fichier
+fourni. Les paramètres sont les suivants :
 
 - ``file: io.TextIOBase`` : un fichier ouvert en mode texte.
 - ``seat_centers: dict[tuple[float, float], SeatData]`` : un dictionnaire des

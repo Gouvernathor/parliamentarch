@@ -62,6 +62,36 @@ layout of the hemicycle. Among them:
 - As long as the number of seats is not the maximum number the number of rows
   can hold, different strategies can be chosen to distribute the seats.
 
+Main module content
+-------------------
+
+These are found in the ``parliamentarch`` module.
+
+``SeatData``
+
+This class is defined and explained in the SVG submodule below, but it is
+exposed as part of the main module.
+
+``write_svg_from_attribution(file, attrib, **kwargs)``
+
+This function writes an SVG file representing a hemicycle to the given file-like
+object. The parameters are as follows:
+
+- ``file: io.TextIOBase``: a file-like object open in text mode.
+- ``attrib: dict[SeatData, int]``: a mapping from a SeatData object applying to
+  a number of seats in the resulting hemicycle, to the number of seats each
+  object applies to. Typically, each SeatData object corresponds to a group or
+  party. The ordering of the keys matter, and the elements will be arranged from
+  left to right in the hemicycle.
+- ``**kwargs``: all optional keyword parameters taken by
+  ``parliamentarch.geometry.get_seats_centers`` or by
+  ``parliamentarch.svg.write_svg`` can be passed to this function.
+
+``get_svg_from_attribution(attrib, **kwargs)``
+
+Instead of writing it to a file, this function returns the SVG content as a
+string. The parameters are otherwise the same.
+
 Geometry submodule contents
 ---------------------------
 
@@ -207,6 +237,7 @@ Todos and future features
 -------------------------
 
 - Document the new SVG direct content
+- Have the main functions support a sequence of SeatData objects using ``dict.fromkeys(seq, 1)``
 - Move the SVG direct content to the module root, move svg_base to svg, and stop importing geometry into root
 - Add LICENSE
 - Add tests

@@ -5,7 +5,7 @@ from .geometry import get_seats_centers
 from .svg import SeatData, dispatch_seats, write_grouped_svg
 from ._util import filter_kwargs, get_from_write
 
-__all__ = ("get_svg_from_attribution", "write_svg_from_attribution")
+__all__ = ("get_svg_from_attribution", "write_svg_from_attribution", "SeatData")
 
 _GET_SEATS_CENTERS_PARAMS = {k for k, p in signature(get_seats_centers).parameters.items() if p.kind==p.KEYWORD_ONLY}
 _WRITE_GROUPED_SVG_PARAMS = {k for k, p in signature(write_grouped_svg).parameters.items() if p.kind==p.KEYWORD_ONLY}
