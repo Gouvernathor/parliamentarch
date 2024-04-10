@@ -127,7 +127,7 @@ def scrape_svg(file: TextIOBase|str) -> _Scrapped:
         pattrib = path.attrib.copy()
 
         transform = pattrib.pop("transform", None)
-        if isinstance(transform, str) and (m := re.fullmatch(r"matrix *\( *([\d\.]+), *([\d\.]+), *([\d\.]+), *([\d\.]+), *([\d\.]+), *([\d\.]+), *\) *", transform)):
+        if isinstance(transform, str) and (m := re.fullmatch(r"matrix *\( *([\d\.]+), *([\d\.]+) *, *([\d\.]+) *, *([\d\.]+) *, *([\d\.]+) *, *([\d\.]+) *\) *", transform)):
             a, b, c, d, e, f = map(float, m.groups())
             if a == d and not any((b, c, e, f)):
                 transform = f"scale({a})"
