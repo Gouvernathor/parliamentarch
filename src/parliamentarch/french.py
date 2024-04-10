@@ -100,27 +100,13 @@ def scrape_svg(file: TextIOBase|str) -> _Scrapped:
 
     tree = ET.fromstring(file)
 
-    # for all {*}a elements:
-        # discard empty href (and other) attribs
-        # apply the tabindex attrib to all children (except title)
-        # raise a warning if other attributes exist
-        # set the title element, if any, as an attrib of the other children or as a child of them
-    # for all {*}path elements:
-        # convert the matrix transforms to scale transforms
-        # rename the class attribute to clazz
-        # convert - to _ in attrib keys
-        # convert style to a dict
-        # extract fill from style to put it as a fill attrib
-        # discard the style if functionally empty
-        # (optional) convert the color parameters to Color objects, including style values
-        # create the _Path object
-        # if id is pint, put the path object in seats
-        # put the path object in paths
-
     for a in tuple(tree.findall(".//{*}a")):
         if not a.attrib.get("href", "www"):
             del a.attrib["href"]
 
+        # retirer ? le tabindex à -1 désactive l'accès par tab,
+        # mais c'est sans objet pour des éléments qui ne sont pas focusables par défaut
+        # comme par ex les path, ou les a sans href
         if tabindex := a.attrib.pop("tabindex", None):
             for child in a:
                 if child.tag.rpartition("}")[2] != "title":
