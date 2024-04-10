@@ -1,9 +1,9 @@
 from collections import defaultdict
 from collections.abc import Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from io import TextIOBase
 import re
-from typing import Any, NamedTuple, Self, SupportsIndex
+from typing import NamedTuple, Self
 import warnings
 import xml.etree.ElementTree as ET
 
