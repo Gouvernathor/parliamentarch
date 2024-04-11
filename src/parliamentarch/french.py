@@ -275,42 +275,6 @@ def get_svg_tree(organized_data: _Organized, *,
                 return "a"
             return "g"
 
-    def to_ET(c: G|_Path) -> ET.Element:
-        if isinstance(c, _Path):
-            attrib = {k.replace("_", "-"): v for k, v in dataclasses.asdict(c).items() if v is not None}
-
-            title = attrib.pop("title", None)
-            if title:
-                if isinstance(title, ET.Element):
-                    children = (title,)
-                elif isinstance(title, str):
-                    title_elem = ET.Element("title")
-                    title_elem.text = title
-                    children = (title_elem,)
-            else:
-                children = ()
-
-            tag = "path"
-
-        else:
-            attrib = c.attrib
-
-            raw_children = list(c.children)
-            for child in c.children:
-                if isinstance(child, G) and not child.attrib:
-                    raw_children.remove(child)
-                    raw_children.extend(child.children)
-
-            children = map(to_ET, raw_children)
-
-            tag = c.tag
-            if tag == "g" and attrib.get("tabindex", "0") == "-1":
-                del attrib["tabindex"]
-
-        e = ET.Element(tag, attrib)
-        e.extend(children)
-        return e
-
     svg_direct_content: list[G|_Path] = []
 
     for name, path in organized_data.structural_paths.items():
@@ -333,6 +297,7 @@ def get_svg_tree(organized_data: _Organized, *,
             e = e.children[i]
         return e
 
+    # TODO: check this for None values (should be fine but check again)
     while remaining:
         indices, fields = next(iter(remaining.items()))
         if not fields:
@@ -409,6 +374,44 @@ def get_svg_tree(organized_data: _Organized, *,
                 for k in main_g_attribs:
                     setattr(g, k, None)
         svg_direct_content = [G(main_g_attribs, svg_direct_content)]
+
+    def to_ET(c: G|_Path) -> ET.Element:
+        if isinstance(c, _Path):
+            attrib = {k.replace("_", "-"): v for k, v in dataclasses.asdict(c).items() if v is not None}
+
+            title = attrib.pop("title", None)
+            if title:
+                if isinstance(title, ET.Element):
+                    children = (title,)
+                elif isinstance(title, str):
+                    title_elem = ET.Element("title")
+                    title_elem.text = title
+                    children = (title_elem,)
+            else:
+                children = ()
+
+            tag = "path"
+
+        else:
+            attrib = c.attrib
+            if None in attrib.values():
+                warnings.warn(f"None value in attrib: {attrib}, build not done properly")
+
+            raw_children = list(c.children)
+            for child in c.children:
+                if isinstance(child, G) and not child.attrib:
+                    raw_children.remove(child)
+                    raw_children.extend(child.children)
+
+            children = map(to_ET, raw_children)
+
+            tag = c.tag
+            if tag == "g" and attrib.get("tabindex", "0") == "-1":
+                del attrib["tabindex"]
+
+        e = ET.Element(tag, attrib)
+        e.extend(children)
+        return e
 
     svg = ET.Element("svg", {
         "xmlns": "http://www.w3.org/2000/svg",
