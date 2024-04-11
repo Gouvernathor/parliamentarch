@@ -377,9 +377,34 @@ def get_svg_tree(organized_data: _Organized, *,
                 if isinstance(sub_g, G):
                     remaining[indices+(i,)] = fields
 
-    # do a final pass for the all-encompassing gs, putting those with common attribs in encompassing gs
-    # maybe just once for attribs common to all ?
+    # a final pass for the all-encompassing gs, putting those with common attribs in encompassing gs
+    # just once for attribs common to all
     # (meant for the transform field)
+    for g in svg_direct_content:
+        if isinstance(g, G):
+            main_g_attribs: dict[str, str] = g.attrib.copy()
+            break
+    for elem in svg_direct_content:
+        if isinstance(elem, G):
+            for k, v in main_g_attribs.items():
+                if elem.attrib.get(k, not v) != v:
+                    del main_g_attribs[k]
+        else:
+            for k, v in main_g_attribs.items():
+                if getattr(elem, k, not v) != v:
+                    del main_g_attribs[k]
+    if main_g_attribs:
+        for g in tuple(svg_direct_content):
+            if isinstance(g, G):
+                for k in main_g_attribs:
+                    del g.attrib[k]
+                if not g.attrib:
+                    i = svg_direct_content.index(g)
+                    svg_direct_content[i:i+1] = g.children
+            else:
+                for k in main_g_attribs:
+                    setattr(g, k, None)
+        svg_direct_content = [G(main_g_attribs, svg_direct_content)]
 
     svg = ET.Element("svg", {
         "xmlns": "http://www.w3.org/2000/svg",
