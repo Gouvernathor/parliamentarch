@@ -263,7 +263,7 @@ json_dump = partial(json.dump, default=json_serializer)
 def get_svg_tree(organized_data: _Organized, *,
         seats_blacklist: Sequence[int] = (),
         seats_whitelist: Sequence[int] = (),
-        **toggles: bool) -> ET.Element|ET.ElementTree:
+        **toggles: bool) -> ET.ElementTree:
 
     @dataclasses.dataclass
     class G:
@@ -390,4 +390,4 @@ def get_svg_tree(organized_data: _Organized, *,
 
     svg.extend(map(to_ET, svg_direct_content))
 
-    return svg
+    return ET.ElementTree(svg)
