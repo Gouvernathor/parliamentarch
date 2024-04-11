@@ -171,6 +171,10 @@ def scrape_svg(file: TextIOBase|str) -> _Scraped:
 
         if (title := path.find("{*}title")) is not None:
             path.remove(title)
+            if title.text and (not title.attrib) and (not title[:]):
+                title = title.text
+            else:
+                warnings.warn("A title element has attribs or doesn't contain text")
 
         tabindex = pattrib.pop("tabindex", None)
 
@@ -196,6 +200,8 @@ def scrape_svg(file: TextIOBase|str) -> _Scraped:
             identifier = id_
         elif clazz:
             identifier = clazz
+        elif isinstance(title, str):
+            identifier = title
         elif (title is not None) and ((titext := title.text) is not None):
             identifier = titext
         # hardcodé
@@ -226,7 +232,7 @@ def json_serializer(o: object) -> Any:
     if dataclasses.is_dataclass(o) and not isinstance(o, type):
         # return dataclasses.asdict(o) # recursive, bad
         return {f.name: getattr(o, f.name) for f in dataclasses.fields(o)}
-    if isinstance(o, ET.Element) and o.tag.rpartition("}")[2] == "title" and o.text:
+    if isinstance(o, ET.Element) and (o.tag.rpartition("}")[2] == "title") and (not o.attrib) and (not o[:]) and o.text:
         return o.text
     raise TypeError(f"Cannot serialize {o!r}.")
 
