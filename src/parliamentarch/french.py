@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Mapping, Sequence
+from collections.abc import Iterable, Mapping
 import dataclasses
 from functools import partial
 from io import TextIOBase
@@ -65,26 +65,25 @@ class _Path:
     stroke_linejoin: str|None = None
     stroke_width: str|None = None
 
-class DictList[T](list[T|None]):
-    __slots__ = ()
-    def __getitem__(self, idx: int|slice, /) -> T|None|list[T|None]:
-        # enable slice support
-        if isinstance(idx, int):
-            if idx > len(self):
-                return None
-        return super().__getitem__(idx)
-    def __setitem__(self, idx: int|slice, value: T|None, /) -> None:
-        # enable slice setting to work even if the start of the slice is higher than current length
-        if isinstance(idx, int):
-            diff = idx - len(self)
-            if diff >= 0:
-                self.extend([None]*(diff+1))
-        return super().__setitem__(idx, value) # type: ignore
-
 @dataclasses.dataclass
 class _Scrapped:
     paths: Mapping[str, _Path]
-    seats: Sequence[_Path|None]
+
+    # seats: Sequence[_Path|None]
+    @property
+    def seats(self) -> Iterable[_Path|None]:
+        # turn into cachedproperty if made frozen
+        mx = max(int(m.group(1)) for key in self.paths if (m := re.fullmatch(r"p(\d+)", key))) + 1
+        nones = 0
+        for i in range(mx):
+            key = f"p{i}"
+            val = self.paths.get(key, None)
+            if val is None:
+                nones += 1
+            else:
+                yield from iter((None,)*nones)
+                nones = 0
+                yield val
 
     def get_seats_by_color(self) -> Mapping[Color, list[int]]:
         """
@@ -127,7 +126,6 @@ def scrape_svg(file: TextIOBase|str) -> _Scrapped:
                 child.append(title)
 
     paths = {}
-    seats = DictList()
 
     for path in tree.findall(".//{*}path"):
         pattrib = path.attrib.copy()
@@ -193,9 +191,6 @@ def scrape_svg(file: TextIOBase|str) -> _Scrapped:
             **path_kwargs
         )
 
-        if id_ and (m := re.fullmatch(r"p(\d+)", id_)):
-            seats[int(m.group(1))] = path_object
-
         identifier: str
         if id_:
             identifier = id_
@@ -218,7 +213,8 @@ def scrape_svg(file: TextIOBase|str) -> _Scrapped:
         if path[:]:
             warnings.warn(f"There are <path> children remaining : {', '.join(map(str, path))}")
 
-    return _Scrapped(paths=paths, seats=seats)
+    rv = _Scrapped(paths=paths)
+    return rv
 
 
 def json_serializer(o: object) -> Any:
@@ -240,20 +236,7 @@ def json_object_hook(d: dict[str, Any]) -> Any:
     """
     for typ in (_Path, _Scrapped, Color):
         if d.keys() == {f.name for f in dataclasses.fields(typ)}:
-            rv = typ(**d)
-
-            # solves the issue of the objects in the list and dict of _Scrapped being the same
-            # also converts the list of seats to a DictList
-            if isinstance(rv, _Scrapped):
-                newseats = DictList()
-                for seat in rv.seats:
-                    if seat is None:
-                        newseats.append(None)
-                    else:
-                        newseats.append(rv.paths[seat.id]) # type: ignore
-                rv.seats = newseats
-
-            return rv
+            return typ(**d)
     return d
 
 # parse_float=str, parse_int=str
