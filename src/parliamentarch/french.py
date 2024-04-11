@@ -281,7 +281,6 @@ def get_svg_tree(organized_data: _Organized, *,
     def to_ET(c: G|A|_Path) -> ET.Element:
         if isinstance(c, _Path):
             attrib = {k.replace("_", "-"): v for k, v in dataclasses.asdict(c).items() if v is not None}
-            # TODO: remove None elements, and rename some properties from _ back to -
 
             title = attrib.pop("title", None)
             if title:
