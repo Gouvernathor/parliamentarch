@@ -359,12 +359,16 @@ def get_svg_tree(organized_data: _Organized, *,
             del remaining[indices]
             continue
 
-        # field with minimal number of values
+        # field with minimal number of different values
         minfield = min(per_field_value, key=lambda f:len(per_field_value[f]))
+        # TODO: maybe take all the fields with that exact list
+        # not necessary but may be quicker
 
         new_gs = []
         for value, pathlist in per_field_value[minfield].items():
-            if (minfield != "href") and (len(pathlist) == 1):
+            if value is None:
+                new_gs.extend(pathlist)
+            elif (minfield != "href") and (len(pathlist) == 1):
                 new_gs.append(pathlist[0])
             else:
                 new_gs.append(G({minfield: value}, pathlist))
