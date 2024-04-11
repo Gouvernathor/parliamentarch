@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Iterable, Mapping
+from collections.abc import Iterable, Mapping, Sequence
 import dataclasses
 from functools import partial
 from io import TextIOBase
@@ -97,8 +97,16 @@ class _Scraped:
         rv.default_factory = None
         return rv
 
+@dataclasses.dataclass
+class _Organized[G]:
+    structural_paths: dict[str, _Path]
+    grouped_seats: dict[G, list[_Path]]
+    group_colors: dict[G, Color|str]
+
 def scrape_svg(file: TextIOBase|str) -> _Scraped:
     # there is one circle in the svg, which is intentionally not scraped
+    # TODO: store the circle's coordinates (discard the radius), maybe store its color
+    # store the SVG params (class size params...)
     if not isinstance(file, str):
         with file as f:
             return scrape_svg(f.read())
@@ -240,7 +248,7 @@ def json_object_hook(d: dict[str, Any]) -> Any:
     """
     To be passed as the `object_hook` parameter to `json.load` or `json.loads`.
     """
-    for typ in (_Path, _Scraped, Color):
+    for typ in (_Organized, _Path, _Scraped, Color):
         if d.keys() == {f.name for f in dataclasses.fields(typ)}:
             return typ(**d)
     return d
@@ -250,3 +258,134 @@ json_loads = partial(json.loads, object_hook=json_object_hook)
 json_load = partial(json.load, object_hook=json_object_hook)
 json_dumps = partial(json.dumps, default=json_serializer)
 json_dump = partial(json.dump, default=json_serializer)
+
+
+def get_svg_tree(organized_data: _Organized, *,
+        seats_blacklist: Sequence[int] = (),
+        seats_whitelist: Sequence[int] = (),
+        **toggles: bool) -> ET.Element|ET.ElementTree:
+
+    @dataclasses.dataclass
+    class G:
+        attrib: dict[str, str]
+        children: Sequence["A|G|_Path"]
+
+    class A(G): pass
+
+    tags = {
+        A: "a",
+        G: "g",
+        _Path: "path",
+    }
+
+    def to_ET(c: G|A|_Path) -> ET.Element:
+        if isinstance(c, _Path):
+            attrib = {k.replace("_", "-"): v for k, v in dataclasses.asdict(c).items() if v is not None}
+            # TODO: remove None elements, and rename some properties from _ back to -
+
+            title = attrib.pop("title", None)
+            if title:
+                if isinstance(title, ET.Element):
+                    children = (title,)
+                elif isinstance(title, str):
+                    title_elem = ET.Element("title")
+                    title_elem.text = title
+                    children = (title_elem,)
+            else:
+                children = ()
+
+        else:
+            attrib = c.attrib
+
+            raw_children = list(c.children)
+            for child in c.children:
+                if isinstance(child, (A, G)) and not child.attrib:
+                    raw_children.remove(child)
+                    raw_children.extend(child.children)
+
+            children = map(to_ET, raw_children)
+
+        e = ET.Element(tags[type(c)], attrib)
+        e.extend(children)
+        return e
+
+    svg_direct_content: list[G|A|_Path] = []
+
+    for name, path in organized_data.structural_paths.items():
+        if toggles.pop(name, True):
+            svg_direct_content.append(path)
+
+    # TODO: check if the clazz attribute should be censored as well
+    PATH_FIELDS = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id"}
+    remaining: dict[tuple[int, ...], frozenset[str]] = {}
+    # make a g for each color (with at least a fill attribute), and put the seats inside
+    for i, (gid, pathlist) in enumerate(organized_data.grouped_seats.items(), start=len(svg_direct_content)):
+        # TODO: filter the seats here
+        g = G(dict(fill=str(organized_data.group_colors[gid])), pathlist.copy())
+        remaining[(i,)] = PATH_FIELDS
+        svg_direct_content.append(g)
+
+    def get_index(i, *idx:int) -> G|A:
+        e = svg_direct_content[i]
+        for i in idx:
+            e = e.children[i]
+        return e
+
+    while remaining:
+        indices, fields = next(iter(remaining.items()))
+        if not fields:
+            del remaining[indices]
+            continue
+
+        g = get_index(*indices)
+        per_field_value: dict[str, dict[str, list[_Path]]] = {}
+        for field in fields:
+            this_fields_values = per_field_value[field] = defaultdict(list)
+            for child in g.children:
+                this_fields_values[getattr(child, field)].append(child) # type: ignore
+
+            if len(this_fields_values) == 1:
+                field_value = next(iter(this_fields_values))
+                if field_value is not None:
+                    # TODO: if field is href, turn g into an a
+                        # in that case address the case of the g being directly in svg_direct_content
+                    g.attrib[field] = field_value
+                    for child in g.children:
+                        setattr(child, field, None)
+                del per_field_value[field]
+                fields -= {field}
+
+        if not per_field_value:
+            del remaining[indices]
+            continue
+
+        # field with minimal number of values
+        minfield = min(per_field_value, key=lambda f:len(per_field_value[f]))
+
+        new_gs = [G({minfield: value}, pathlist) for value, pathlist in per_field_value[minfield].items()]
+        # TODO: if a g has a singleton pathlist, insert the child directly
+            # in that case, do not put paths's indices in remaining
+        # TODO: if field is href, turn these g into a
+        g.children = new_gs
+
+        del remaining[indices]
+        fields -= {minfield}
+        if fields:
+            for i, sub_g in enumerate(new_gs):
+                if isinstance(sub_g, (G, A)):
+                    remaining[indices+(i,)] = fields
+
+    # do a final pass for the all-encompassing gs, putting those with common attribs in encompassing gs
+    # maybe just once for attribs common to all ?
+    # (meant for the transform field)
+
+    svg = ET.Element("svg", {
+        "xmlns": "http://www.w3.org/2000/svg",
+        "xmlns:xlink": "http://www.w3.org/1999/xlink",
+        "version": "1.1",
+    })
+    # manage size and other properties
+
+    svg.extend(map(to_ET, svg_direct_content))
+
+    return svg
