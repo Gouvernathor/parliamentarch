@@ -1,13 +1,18 @@
 from collections import defaultdict
-from collections.abc import Sequence
-from dataclasses import dataclass
+from collections.abc import Mapping, Sequence
+import dataclasses
+from functools import partial
 from io import TextIOBase
+import json
 import re
-from typing import NamedTuple, Self
+from typing import Any, Self
 import warnings
 import xml.etree.ElementTree as ET
 
-class Color(NamedTuple):
+# class Color(NamedTuple):
+@dataclasses.dataclass(frozen=True)
+class Color:
+    # namedtuple cannot be json-serialized other than as a json array
     r: int
     g: int
     b: int
@@ -46,13 +51,13 @@ class Color(NamedTuple):
 
     __repr__ = __str__
 
-@dataclass
+@dataclasses.dataclass
 class _Path:
     d: str
     transform: str|None = None
     clazz: str|None = None
     id: str|None = None
-    style: str|dict[str, str|Color]|None = None
+    style: str|Mapping[str, str|Color]|None = None
     stroke: str|Color|None = None
     fill: str|Color|None = None
     tabindex: str|None = None
@@ -76,12 +81,12 @@ class DictList[T](list[T|None]):
                 self.extend([None]*(diff+1))
         return super().__setitem__(idx, value) # type: ignore
 
-@dataclass
+@dataclasses.dataclass
 class _Scrapped:
-    paths: dict[str, _Path]
+    paths: Mapping[str, _Path]
     seats: Sequence[_Path|None]
 
-    def get_seats_by_color(self) -> dict[Color, list[int]]:
+    def get_seats_by_color(self) -> Mapping[Color, list[int]]:
         """
         Renverra une clé de None pour les sièges existants mais non-attribués
         (dont potentiellement le siège en hémicycle de la présidence)
@@ -94,6 +99,7 @@ class _Scrapped:
         return rv
 
 def scrape_svg(file: TextIOBase|str) -> _Scrapped:
+    # there is one circle in the svg, which is intentionally not scraped
     if not isinstance(file, str):
         with file as f:
             return scrape_svg(f.read())
@@ -181,9 +187,9 @@ def scrape_svg(file: TextIOBase|str) -> _Scrapped:
             clazz=clazz,
             id=id_,
             style=(style_dict or None),
+            fill=fill,
             tabindex=tabindex,
             title=title,
-            fill=fill,
             **path_kwargs
         )
 
@@ -213,3 +219,45 @@ def scrape_svg(file: TextIOBase|str) -> _Scrapped:
             warnings.warn(f"There are <path> children remaining : {', '.join(map(str, path))}")
 
     return _Scrapped(paths=paths, seats=seats)
+
+
+def json_serializer(o: object) -> Any:
+    """
+    To be passed as the `default` parameter to `json.dump` or `json.dumps`.
+    """
+    if isinstance(o, Color):
+        return str(o)
+    if dataclasses.is_dataclass(o) and not isinstance(o, type):
+        # return dataclasses.asdict(o) # recursive, bad
+        return {f.name: getattr(o, f.name) for f in dataclasses.fields(o)}
+    if isinstance(o, ET.Element) and o.tag.rpartition("}")[2] == "title" and o.text:
+        return o.text
+    raise TypeError(f"Cannot serialize {o!r}.")
+
+def json_object_hook(d: dict[str, Any]) -> Any:
+    """
+    To be passed as the `object_hook` parameter to `json.load` or `json.loads`.
+    """
+    for typ in (_Path, _Scrapped, Color):
+        if d.keys() == {f.name for f in dataclasses.fields(typ)}:
+            rv = typ(**d)
+
+            # solves the issue of the objects in the list and dict of _Scrapped being the same
+            # also converts the list of seats to a DictList
+            if isinstance(rv, _Scrapped):
+                newseats = DictList()
+                for seat in rv.seats:
+                    if seat is None:
+                        newseats.append(None)
+                    else:
+                        newseats.append(rv.paths[seat.id]) # type: ignore
+                rv.seats = newseats
+
+            return rv
+    return d
+
+# parse_float=str, parse_int=str
+json_loads = partial(json.loads, object_hook=json_object_hook)
+json_load = partial(json.load, object_hook=json_object_hook)
+json_dumps = partial(json.dumps, default=json_serializer)
+json_dump = partial(json.dump, default=json_serializer)
