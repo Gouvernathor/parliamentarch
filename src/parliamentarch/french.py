@@ -269,7 +269,11 @@ def get_svg_tree(organized_data: _Organized, *,
     class G:
         attrib: dict[str, str]
         children: Sequence["G|_Path"]
-        tag: str = "g"
+        @property
+        def tag(self) -> str:
+            if "href" in self.attrib:
+                return "a"
+            return "g"
 
     def to_ET(c: G|_Path) -> ET.Element:
         if isinstance(c, _Path):
@@ -300,6 +304,8 @@ def get_svg_tree(organized_data: _Organized, *,
             children = map(to_ET, raw_children)
 
             tag = c.tag
+            if tag == "g" and attrib.get("tabindex", "0") == "-1":
+                del attrib["tabindex"]
 
         e = ET.Element(tag, attrib)
         e.extend(children)
@@ -312,13 +318,13 @@ def get_svg_tree(organized_data: _Organized, *,
             svg_direct_content.append(path)
 
     # TODO: check if the clazz attribute should be censored as well
-    PATH_FIELDS = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id"}
+    PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id"}
     remaining: dict[tuple[int, ...], frozenset[str]] = {}
     # make a g for each color (with at least a fill attribute), and put the seats inside
     for i, (gid, pathlist) in enumerate(organized_data.grouped_seats.items(), start=len(svg_direct_content)):
         # TODO: filter the seats here
         g = G(dict(fill=str(organized_data.group_colors[gid])), pathlist.copy())
-        remaining[(i,)] = PATH_FIELDS
+        remaining[(i,)] = PATH_FIELDS_TO_GROUP
         svg_direct_content.append(g)
 
     def get_index(i, *idx:int) -> G:
@@ -343,8 +349,6 @@ def get_svg_tree(organized_data: _Organized, *,
             if len(this_fields_values) == 1:
                 field_value = next(iter(this_fields_values))
                 if field_value is not None:
-                    # TODO: if field is href, turn g into an a
-                        # in that case address the case of the g being directly in svg_direct_content
                     g.attrib[field] = field_value
                     for child in g.children:
                         setattr(child, field, None)
@@ -358,10 +362,12 @@ def get_svg_tree(organized_data: _Organized, *,
         # field with minimal number of values
         minfield = min(per_field_value, key=lambda f:len(per_field_value[f]))
 
-        new_gs = [G({minfield: value}, pathlist) for value, pathlist in per_field_value[minfield].items()]
-        # TODO: if a g has a singleton pathlist, insert the child directly
-            # in that case, do not put paths's indices in remaining
-        # TODO: if field is href, turn these g into a
+        new_gs = []
+        for value, pathlist in per_field_value[minfield].items():
+            if (minfield != "href") and (len(pathlist) == 1):
+                new_gs.append(pathlist[0])
+            else:
+                new_gs.append(G({minfield: value}, pathlist))
         g.children = new_gs
 
         del remaining[indices]
