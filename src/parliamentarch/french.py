@@ -268,17 +268,10 @@ def get_svg_tree(organized_data: _Organized, *,
     @dataclasses.dataclass
     class G:
         attrib: dict[str, str]
-        children: Sequence["A|G|_Path"]
+        children: Sequence["G|_Path"]
+        tag: str = "g"
 
-    class A(G): pass
-
-    tags = {
-        A: "a",
-        G: "g",
-        _Path: "path",
-    }
-
-    def to_ET(c: G|A|_Path) -> ET.Element:
+    def to_ET(c: G|_Path) -> ET.Element:
         if isinstance(c, _Path):
             attrib = {k.replace("_", "-"): v for k, v in dataclasses.asdict(c).items() if v is not None}
 
@@ -293,22 +286,26 @@ def get_svg_tree(organized_data: _Organized, *,
             else:
                 children = ()
 
+            tag = "path"
+
         else:
             attrib = c.attrib
 
             raw_children = list(c.children)
             for child in c.children:
-                if isinstance(child, (A, G)) and not child.attrib:
+                if isinstance(child, G) and not child.attrib:
                     raw_children.remove(child)
                     raw_children.extend(child.children)
 
             children = map(to_ET, raw_children)
 
-        e = ET.Element(tags[type(c)], attrib)
+            tag = c.tag
+
+        e = ET.Element(tag, attrib)
         e.extend(children)
         return e
 
-    svg_direct_content: list[G|A|_Path] = []
+    svg_direct_content: list[G|_Path] = []
 
     for name, path in organized_data.structural_paths.items():
         if toggles.pop(name, True):
@@ -324,7 +321,7 @@ def get_svg_tree(organized_data: _Organized, *,
         remaining[(i,)] = PATH_FIELDS
         svg_direct_content.append(g)
 
-    def get_index(i, *idx:int) -> G|A:
+    def get_index(i, *idx:int) -> G:
         e = svg_direct_content[i]
         for i in idx:
             e = e.children[i]
@@ -371,7 +368,7 @@ def get_svg_tree(organized_data: _Organized, *,
         fields -= {minfield}
         if fields:
             for i, sub_g in enumerate(new_gs):
-                if isinstance(sub_g, (G, A)):
+                if isinstance(sub_g, G):
                     remaining[indices+(i,)] = fields
 
     # do a final pass for the all-encompassing gs, putting those with common attribs in encompassing gs
