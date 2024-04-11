@@ -66,7 +66,7 @@ class _Path:
     stroke_width: str|None = None
 
 @dataclasses.dataclass
-class _Scrapped:
+class _Scraped:
     paths: Mapping[str, _Path]
 
     # seats: Sequence[_Path|None]
@@ -97,7 +97,7 @@ class _Scrapped:
         rv.default_factory = None
         return rv
 
-def scrape_svg(file: TextIOBase|str) -> _Scrapped:
+def scrape_svg(file: TextIOBase|str) -> _Scraped:
     # there is one circle in the svg, which is intentionally not scraped
     if not isinstance(file, str):
         with file as f:
@@ -213,7 +213,7 @@ def scrape_svg(file: TextIOBase|str) -> _Scrapped:
         if path[:]:
             warnings.warn(f"There are <path> children remaining : {', '.join(map(str, path))}")
 
-    rv = _Scrapped(paths=paths)
+    rv = _Scraped(paths=paths)
     return rv
 
 
@@ -234,7 +234,7 @@ def json_object_hook(d: dict[str, Any]) -> Any:
     """
     To be passed as the `object_hook` parameter to `json.load` or `json.loads`.
     """
-    for typ in (_Path, _Scrapped, Color):
+    for typ in (_Path, _Scraped, Color):
         if d.keys() == {f.name for f in dataclasses.fields(typ)}:
             return typ(**d)
     return d
