@@ -532,4 +532,4 @@ if __name__ == "__main__":
         out_fn = None
         if len(sys.argv) >= 3:
             out_fn = sys.argv[2]
-        main(sys.argv[1], out_fn)
+        scraped, organized, tree = main(sys.argv[1], out_fn)
