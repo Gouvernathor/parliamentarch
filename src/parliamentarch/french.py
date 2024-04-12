@@ -69,21 +69,30 @@ class _Path:
 class _Scraped:
     paths: Mapping[str, _Path]
 
+    @staticmethod
+    def _pop_seats(paths: dict[str, _Path], pop: bool, yield_nones: bool):
+        mx = max(int(m.group(1)) for key in paths if (m := re.fullmatch(r"p(\d+)", key))) + 1
+        if pop:
+            method = paths.pop
+        else:
+            method = paths.get
+        nones = 0
+        for i in range(mx):
+            key = f"p{i}"
+            val = method(key, None)
+            if val is None:
+                nones += 1
+            else:
+                if yield_nones:
+                    yield from iter((None,)*nones)
+                nones = 0
+                yield val
+
     # seats: Sequence[_Path|None]
     @property
     def seats(self) -> Iterable[_Path|None]:
         # turn into cachedproperty if made frozen
-        mx = max(int(m.group(1)) for key in self.paths if (m := re.fullmatch(r"p(\d+)", key))) + 1
-        nones = 0
-        for i in range(mx):
-            key = f"p{i}"
-            val = self.paths.get(key, None)
-            if val is None:
-                nones += 1
-            else:
-                yield from iter((None,)*nones)
-                nones = 0
-                yield val
+        return self._pop_seats(dict(self.paths), pop=False, yield_nones=True)
 
     def get_seats_by_color(self) -> Mapping[Color, list[int]]:
         """
@@ -102,6 +111,10 @@ class _Organized[G]:
     structural_paths: dict[str, _Path]
     grouped_seats: dict[G, list[_Path]]
     group_colors: dict[G, Color|str]
+
+    @classmethod
+    def from_scraped(cls, scraped: _Scraped, group_ids: Iterable[G]|None = None) -> Self[G]:
+        pass
 
 def scrape_svg(file: TextIOBase|str) -> _Scraped:
     # there is one circle in the svg, which is intentionally not scraped
@@ -282,7 +295,7 @@ def get_svg_tree(organized_data: _Organized, *,
             svg_direct_content.append(path)
 
     # TODO: check if the clazz attribute should be censored as well
-    PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id"}
+    PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
     remaining: dict[tuple[int, ...], frozenset[str]] = {}
     # make a g for each color (with at least a fill attribute), and put the seats inside
     for i, (gid, pathlist) in enumerate(organized_data.grouped_seats.items(), start=len(svg_direct_content)):
@@ -423,3 +436,5 @@ def get_svg_tree(organized_data: _Organized, *,
     svg.extend(map(to_ET, svg_direct_content))
 
     return ET.ElementTree(svg)
+
+# short_empty_elements=False (always, but try only as default), encoding='unicode' (default), xml_declaration=False
