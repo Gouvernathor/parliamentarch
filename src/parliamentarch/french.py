@@ -1,5 +1,5 @@
 from collections import defaultdict
-from collections.abc import Iterable, Mapping, Sequence
+from collections.abc import Collection, Iterable, Mapping, Sequence
 import dataclasses
 from functools import partial
 from io import TextIOBase
@@ -310,9 +310,23 @@ json_dump = partial(json.dump, default=json_serializer)
 
 
 def get_svg_tree(organized_data: _Organized, *,
-        seats_blacklist: Sequence[int] = (),
-        seats_whitelist: Sequence[int] = (),
+        seats_blacklist: Collection[int] = (),
+        seats_whitelist: Collection[int] = (),
+        include_none_seats: bool = False,
         **toggles: bool) -> ET.ElementTree:
+    """
+    include_none_seats being False (the default) means not writing
+    the seats whose color is None.
+    That parameter overrides such a seat being present in the whitelist
+    or being absent from the blacklist.
+    """
+
+    seats_blacklist = frozenset(seats_blacklist)
+    seats_whitelist = frozenset(seats_whitelist)
+    if seats_blacklist:
+        if seats_whitelist:
+            raise TypeError("Cannot pass whitelist and blacklist at the same time")
+        seats_whitelist = organized_data.seats.keys() - seats_blacklist
 
     @dataclasses.dataclass
     class G:
@@ -335,12 +349,14 @@ def get_svg_tree(organized_data: _Organized, *,
     remaining: dict[tuple[int, ...], frozenset[str]] = {}
     # make a g for each color (with at least a fill attribute), and put the seats inside
     for i, (gid, seat_nb_list) in enumerate(organized_data.grouped_seats.items(), start=len(svg_direct_content)):
-        # TODO: filter the seats here
-        g = G({}, [organized_data.seats[i] for i in seat_nb_list])
+        g = G({}, [organized_data.seats[i] for i in seat_nb_list if i in seats_whitelist])
 
         color = organized_data.group_colors[gid]
         if color is not None:
             g.attrib["fill"] = str(color)
+        elif not include_none_seats:
+            continue
+
         remaining[(i,)] = PATH_FIELDS_TO_GROUP
         svg_direct_content.append(g)
 
