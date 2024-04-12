@@ -114,7 +114,9 @@ class _Scraped:
 @dataclasses.dataclass
 class _Organized[G]:
     structural_paths: dict[str, _Path]
-    grouped_seats: dict[G, list[_Path]]
+    seats: Mapping[int, _Path]
+    # only the following should be mutated, generally, and only by values
+    grouped_seats: dict[G, list[int]]
     group_colors: dict[G, Color|str|None]
 
     @staticmethod
@@ -125,11 +127,17 @@ class _Organized[G]:
         group_ids_it = iter(group_ids) # type: ignore
 
         paths = dict(scraped.paths)
-        seats: Iterable[_Path] = _Scraped.pop_seats(paths, pop=True, yield_nones=False) # type: ignore
+        seats_it: Iterable[_Path] = _Scraped.pop_seats(paths, pop=True, yield_nones=True) # type: ignore
+        seats_dict = {}
 
-        grouped_seats: dict[G, list[_Path]] = defaultdict(list)
+        grouped_seats: dict[G, list[int]] = defaultdict(list)
         color_groups: dict[Color|str|None, G] = {}
-        for seat in seats:
+        for i, seat in enumerate(seats_it):
+            if seat is None:
+                continue
+
+            seats_dict[i] = seat
+
             color = seat.fill
             if color is not None:
                 color = str(color)
@@ -139,10 +147,10 @@ class _Organized[G]:
                 group = next(group_ids_it)
                 color_groups[color] = group
 
-            grouped_seats[group].append(seat)
+            grouped_seats[group].append(i)
 
         grouped_seats.default_factory = None
-        return _Organized(paths, grouped_seats, {g: c for c, g in color_groups.items()})
+        return _Organized(paths, seats_dict, grouped_seats, {g: c for c, g in color_groups.items()})
 
 def scrape_svg(file: TextIOBase|str) -> _Scraped:
     # there is one circle in the svg, which is intentionally not scraped
@@ -326,9 +334,10 @@ def get_svg_tree(organized_data: _Organized, *,
     PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
     remaining: dict[tuple[int, ...], frozenset[str]] = {}
     # make a g for each color (with at least a fill attribute), and put the seats inside
-    for i, (gid, pathlist) in enumerate(organized_data.grouped_seats.items(), start=len(svg_direct_content)):
+    for i, (gid, seat_nb_list) in enumerate(organized_data.grouped_seats.items(), start=len(svg_direct_content)):
         # TODO: filter the seats here
-        g = G({}, pathlist.copy())
+        g = G({}, [organized_data.seats[i] for i in seat_nb_list])
+
         color = organized_data.group_colors[gid]
         if color is not None:
             g.attrib["fill"] = str(color)
