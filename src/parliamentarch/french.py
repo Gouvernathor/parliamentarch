@@ -115,14 +115,15 @@ class _Scraped:
 class _Organized[G]:
     structural_paths: dict[str, _Path]
     seats: Mapping[int, _Path]
-    # only the following should be mutated, generally, and only by values
+    # only the following two should be mutated, generally, and only by values
     grouped_seats: dict[G, list[int]]
+    # TODO: turn into group_data and allow more than just color (href too)
     group_colors: dict[G, Color|str|None]
 
     @staticmethod
     def from_scraped(scraped: _Scraped, group_ids: Iterable[G]|None = None) -> "_Organized[G]":
         if group_ids is None:
-            group_ids = range(len(scraped.seats)) # type: ignore
+            group_ids = range(len(scraped.paths)) # type: ignore
 
         group_ids_it = iter(group_ids) # type: ignore
 
@@ -136,11 +137,12 @@ class _Organized[G]:
             if seat is None:
                 continue
 
-            seats_dict[i] = seat
-
             color = seat.fill
             if color is not None:
                 color = str(color)
+
+            seat = dataclasses.replace(seat, fill=None)
+            seats_dict[i] = seat
 
             group = color_groups.get(color, None)
             if group is None:
@@ -325,9 +327,10 @@ def get_svg_tree(organized_data: _Organized, *,
 
     seats_blacklist = frozenset(seats_blacklist)
     seats_whitelist = frozenset(seats_whitelist)
-    if seats_blacklist:
-        if seats_whitelist:
+    if seats_whitelist:
+        if seats_blacklist:
             raise TypeError("Cannot pass whitelist and blacklist at the same time")
+    else:
         seats_whitelist = organized_data.seats.keys() - seats_blacklist
 
     @dataclasses.dataclass
@@ -352,7 +355,7 @@ def get_svg_tree(organized_data: _Organized, *,
     PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
     remaining: dict[tuple[int, ...], frozenset[str]] = {}
     # make a g for each color (with at least a fill attribute), and put the seats inside
-    for i, (gid, seat_nb_list) in enumerate(organized_data.grouped_seats.items(), start=len(svg_direct_content)):
+    for gid, seat_nb_list in organized_data.grouped_seats.items():
         g = G({}, [organized_data.seats[i] for i in seat_nb_list if i in seats_whitelist])
 
         color = organized_data.group_colors[gid]
@@ -361,7 +364,7 @@ def get_svg_tree(organized_data: _Organized, *,
         elif not include_none_seats:
             continue
 
-        remaining[(i,)] = PATH_FIELDS_TO_GROUP
+        remaining[(len(svg_direct_content),)] = PATH_FIELDS_TO_GROUP
         svg_direct_content.append(g)
 
     def get_index(i, *idx:int) -> G:
@@ -428,11 +431,11 @@ def get_svg_tree(organized_data: _Organized, *,
             break
     for elem in svg_direct_content:
         if isinstance(elem, G):
-            for k, v in main_g_attribs.items():
+            for k, v in tuple(main_g_attribs.items()):
                 if elem.attrib.get(k, not v) != v:
                     del main_g_attribs[k]
         else:
-            for k, v in main_g_attribs.items():
+            for k, v in tuple(main_g_attribs.items()):
                 if getattr(elem, k, not v) != v:
                     del main_g_attribs[k]
     if main_g_attribs:
