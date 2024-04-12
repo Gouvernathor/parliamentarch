@@ -314,6 +314,7 @@ json_dump = partial(json.dump, default=json_serializer)
 def get_svg_tree(organized_data: _Organized, *,
         seats_blacklist: Collection[int] = (),
         seats_whitelist: Collection[int] = (),
+        indent: str|None = "    ",
         include_none_seats: bool = False,
         error_on_extra_toggles: bool = True,
         **toggles: bool) -> ET.ElementTree:
@@ -508,6 +509,9 @@ def get_svg_tree(organized_data: _Organized, *,
 
     svg.extend(map(to_ET, svg_direct_content))
 
-    return ET.ElementTree(svg)
+    et = ET.ElementTree(svg)
+    if indent is not None:
+        ET.indent(et, indent)
+    return et
 
 # short_empty_elements=False (always, but try only as default), encoding='unicode' (default), xml_declaration=False
