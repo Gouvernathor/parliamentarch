@@ -300,7 +300,10 @@ def get_svg_tree(organized_data: _Organized, *,
     # make a g for each color (with at least a fill attribute), and put the seats inside
     for i, (gid, pathlist) in enumerate(organized_data.grouped_seats.items(), start=len(svg_direct_content)):
         # TODO: filter the seats here
-        g = G(dict(fill=str(organized_data.group_colors[gid])), pathlist.copy())
+        g = G({}, pathlist.copy())
+        color = organized_data.group_colors[gid]
+        if color is not None:
+            g.attrib["fill"] = str(color)
         remaining[(i,)] = PATH_FIELDS_TO_GROUP
         svg_direct_content.append(g)
 
