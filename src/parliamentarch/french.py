@@ -313,12 +313,14 @@ def get_svg_tree(organized_data: _Organized, *,
         seats_blacklist: Collection[int] = (),
         seats_whitelist: Collection[int] = (),
         include_none_seats: bool = False,
+        error_on_extra_toggles: bool = True,
         **toggles: bool) -> ET.ElementTree:
     """
     include_none_seats being False (the default) means not writing
     the seats whose color is None.
     That parameter overrides such a seat being present in the whitelist
     or being absent from the blacklist.
+    toggles only applies to structural paths, not to seats.
     """
 
     seats_blacklist = frozenset(seats_blacklist)
@@ -343,6 +345,8 @@ def get_svg_tree(organized_data: _Organized, *,
     for name, path in organized_data.structural_paths.items():
         if toggles.pop(name, True):
             svg_direct_content.append(path)
+    if error_on_extra_toggles and toggles:
+        raise ValueError("The following toggles were not found among the structural paths : " + ", ".join(toggles))
 
     # TODO: check if the clazz attribute should be censored as well
     PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
