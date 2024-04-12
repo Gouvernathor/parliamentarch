@@ -452,8 +452,18 @@ def get_svg_tree(organized_data: _Organized, *,
         svg_direct_content = [G(main_g_attribs, svg_direct_content)]
 
     def to_ET(c: G|_Path) -> ET.Element:
+        def replace_fname(n):
+            if n == "clazz":
+                return "class"
+            return n.replace("_", "-")
+
+        def replace_color(o):
+            if isinstance(o, Color):
+                return str(o)
+            return o
+
         if isinstance(c, _Path):
-            attrib = {k.replace("_", "-"): v for k, v in dataclasses.asdict(c).items() if v is not None}
+            attrib = {replace_fname(fname): replace_color(v) for field in dataclasses.fields(c) if (v := getattr(c, (fname := field.name))) is not None}
 
             title = attrib.pop("title", None)
             if title:
@@ -469,7 +479,7 @@ def get_svg_tree(organized_data: _Organized, *,
             tag = "path"
 
         else:
-            attrib = c.attrib
+            attrib = {replace_fname(k): replace_color(v) for k, v in c.attrib.items()}
             if None in attrib.values():
                 warnings.warn(f"None value in attrib: {attrib}, build not done properly")
 
