@@ -70,7 +70,11 @@ class _Scraped:
     paths: Mapping[str, _Path]
 
     @staticmethod
-    def _pop_seats(paths: dict[str, _Path], pop: bool, yield_nones: bool):
+    def pop_seats(paths: dict[str, _Path], pop: bool, yield_nones: bool):
+        """
+        Pops the seats off from the path dict *passed* to it,
+        not the paths dict of the instance it's called on (since this is a static method)
+        """
         mx = max(int(m.group(1)) for key in paths if (m := re.fullmatch(r"p(\d+)", key))) + 1
         if pop:
             method = paths.pop
@@ -92,12 +96,13 @@ class _Scraped:
     @property
     def seats(self) -> Iterable[_Path|None]:
         # turn into cachedproperty if made frozen
-        return self._pop_seats(dict(self.paths), pop=False, yield_nones=True)
+        return self.pop_seats(dict(self.paths), pop=False, yield_nones=True)
 
     def get_seats_by_color(self) -> Mapping[Color, list[int]]:
         """
         Renverra une clé de None pour les sièges existants mais non-attribués
         (dont potentiellement le siège en hémicycle de la présidence)
+        Maybe deprecated.
         """
         rv = defaultdict(list)
         for i, seat in enumerate(self.seats):
@@ -110,11 +115,34 @@ class _Scraped:
 class _Organized[G]:
     structural_paths: dict[str, _Path]
     grouped_seats: dict[G, list[_Path]]
-    group_colors: dict[G, Color|str]
+    group_colors: dict[G, Color|str|None]
 
-    @classmethod
-    def from_scraped(cls, scraped: _Scraped, group_ids: Iterable[G]|None = None) -> Self[G]:
-        pass
+    @staticmethod
+    def from_scraped(scraped: _Scraped, group_ids: Iterable[G]|None = None) -> "_Organized[G]":
+        if group_ids is None:
+            group_ids = range(len(scraped.seats)) # type: ignore
+
+        group_ids_it = iter(group_ids) # type: ignore
+
+        paths = dict(scraped.paths)
+        seats: Iterable[_Path] = _Scraped.pop_seats(paths, pop=True, yield_nones=False) # type: ignore
+
+        grouped_seats: dict[G, list[_Path]] = defaultdict(list)
+        color_groups: dict[Color|str|None, G] = {}
+        for seat in seats:
+            color = seat.fill
+            if color is not None:
+                color = str(color)
+
+            group = color_groups.get(color, None)
+            if group is None:
+                group = next(group_ids_it)
+                color_groups[color] = group
+
+            grouped_seats[group].append(seat)
+
+        grouped_seats.default_factory = None
+        return _Organized(paths, grouped_seats, {g: c for c, g in color_groups.items()})
 
 def scrape_svg(file: TextIOBase|str) -> _Scraped:
     # there is one circle in the svg, which is intentionally not scraped
