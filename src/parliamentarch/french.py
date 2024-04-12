@@ -514,4 +514,22 @@ def get_svg_tree(organized_data: _Organized, *,
         ET.indent(et, indent)
     return et
 
-# short_empty_elements=False (always, but try only as default), encoding='unicode' (default), xml_declaration=False
+def main(in_fn, out_fn=None):
+    with open(in_fn) as f:
+        scraped = scrape_svg(f.read())
+    organized = _Organized.from_scraped(scraped)
+    tree = get_svg_tree(organized, include_none_seats=True)
+
+    if out_fn is not None:
+        with open(out_fn, "w+") as f:
+            tree.write(f, encoding="unicode", xml_declaration=False)
+
+    return scraped, organized, tree
+
+if __name__ == "__main__":
+    import sys
+    if len(sys.argv) >= 2:
+        out_fn = None
+        if len(sys.argv) >= 3:
+            out_fn = sys.argv[2]
+        main(sys.argv[1], out_fn)
