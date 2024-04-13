@@ -450,6 +450,7 @@ def reduce_pseudo_xml_svg(svg: SVG,) -> None:
 
 def get_svg_tree(svg: SVG, *,
         indent: str|None = "    ",
+        pop_main_transform: bool = True,
         ) -> ET.ElementTree:
 
     def to_ET(c: Path) -> ET.Element:
@@ -495,7 +496,10 @@ def get_svg_tree(svg: SVG, *,
         e.extend(children)
         return e
 
-    et = ET.ElementTree(to_ET(svg))
+    svg_element = to_ET(svg)
+    if pop_main_transform:
+        svg_element.attrib.pop("transform", None)
+    et = ET.ElementTree(svg_element)
     if indent is not None:
         ET.indent(et, indent)
     return et
