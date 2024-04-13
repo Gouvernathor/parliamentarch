@@ -349,6 +349,7 @@ def get_svg_pseudo_xml(organized_data: _Organized, *,
         seats_whitelist: Collection[int] = (),
         include_none_seats: bool = False,
         error_on_extra_toggles: bool = True,
+        reduce: bool = False,
         **toggles: bool) -> SVG:
     """
     include_none_seats being False (the default) means not writing
@@ -386,6 +387,9 @@ def get_svg_pseudo_xml(organized_data: _Organized, *,
             continue
 
         svg_direct_content.append(g)
+
+    if reduce:
+        reduce_pseudo_xml_svg(svg)
 
     return svg
 
@@ -527,8 +531,7 @@ def main(in_fn, out_fn=None):
     with open(in_fn) as f:
         scraped = scrape_svg(f.read())
     organized = _Organized.from_scraped(scraped)
-    pseudo_xml_svg = get_svg_pseudo_xml(organized, include_none_seats=True)
-    reduce_pseudo_xml_svg(pseudo_xml_svg)
+    pseudo_xml_svg = get_svg_pseudo_xml(organized, include_none_seats=True, reduce=True)
     tree = get_svg_tree(pseudo_xml_svg)
 
     if out_fn is not None:
