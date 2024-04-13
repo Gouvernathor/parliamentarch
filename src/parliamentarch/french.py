@@ -389,10 +389,10 @@ def get_svg_pseudo_xml(organized_data: _Organized, *,
 
     return svg
 
-PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
+# TODO: check if the clazz attribute should be censored as well
+PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id"}
 
 def reduce_pseudo_xml_svg(svg: SVG,) -> None:
-    # TODO: check if the clazz attribute should be censored as well
     remaining: dict[tuple[int, ...], frozenset[str]] = {(): PATH_FIELDS_TO_GROUP}
 
     def get_at_index(*idx:int) -> G:
