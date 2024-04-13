@@ -383,13 +383,13 @@ def get_svg_pseudo_xml(organized_data: _Organized, *,
 
     return svg
 
-def get_svg_tree(
-        svg,
+PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
+
+def get_svg_tree(svg: SVG, *,
         indent: str|None = "    ",
         ) -> ET.ElementTree:
 
     # TODO: check if the clazz attribute should be censored as well
-    PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
     remaining: dict[tuple[int, ...], frozenset[str]] = {(): PATH_FIELDS_TO_GROUP}
 
     def get_at_index(*idx:int) -> G:
@@ -398,7 +398,6 @@ def get_svg_tree(
             e = e.children[i] # type: ignore
         return e
 
-    # TODO: check this for None values (should be fine but check again)
     while remaining:
         indices, fields = remaining.popitem()
         if not fields:
@@ -411,11 +410,11 @@ def get_svg_tree(
                 i = g.children.index(child)
                 g.children[i:i+1] = child.children
 
-        per_field_value: dict[str, dict[str, list[_Path]]] = {}
+        per_field_value: dict[str, dict[str|None, list[Path]]] = {}
         for field in fields:
             this_fields_values = per_field_value[field] = defaultdict(list)
             for child in g.children:
-                this_fields_values[child.attrib.get(field, None)].append(child) # type: ignore
+                this_fields_values[child.attrib.get(field, None)].append(child)
 
             if len(this_fields_values) == 1:
                 field_value = next(iter(this_fields_values))
@@ -434,21 +433,23 @@ def get_svg_tree(
         # TODO: maybe take all the fields with that exact list
         # not necessary but may be quicker
 
-        new_gs = []
-        for value, pathlist in per_field_value[minfield].items():
+        new_children = []
+        for value, childlist in per_field_value[minfield].items():
             if value is None:
-                new_gs.extend(pathlist)
-            elif (minfield != "href") and (len(pathlist) == 1):
-                new_gs.append(pathlist[0])
+                new_children.extend(childlist)
+            elif (minfield != "href") and (len(childlist) == 1):
+                new_children.append(childlist[0])
             else:
-                new_gs.append(G({minfield: value}, pathlist)) # type: ignore
-        g.children = new_gs
+                for path in childlist:
+                    path.attrib.pop(minfield, None)
+                new_children.append(G({minfield: value}, childlist))
+        g.children = new_children
 
         fields -= {minfield}
         if fields:
             remaining[indices] = fields
-            for i, sub_g in enumerate(new_gs):
-                if isinstance(sub_g, G):
+            for i, child in enumerate(new_children):
+                if isinstance(child, G):
                     remaining[indices+(i,)] = fields
 
     def to_ET(c: Path) -> ET.Element:
