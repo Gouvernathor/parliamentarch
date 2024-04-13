@@ -67,6 +67,7 @@ class _Path:
 
 @dataclasses.dataclass
 class _Scraped:
+    svg_attribs: dict[str, str]
     paths: Mapping[str, _Path]
 
     @staticmethod
@@ -115,11 +116,14 @@ def scrape_svg(file: TextIOBase|str) -> _Scraped:
     # there is one circle in the svg, which is intentionally not scraped
     # TODO: store the circle's coordinates (discard the radius), maybe store its color
     # store the SVG params (class size params...)
+    # recalculate the viewBox's x (maybe not here) from the circle's x
     if not isinstance(file, str):
         with file as f:
             return scrape_svg(f.read())
 
     tree = ET.fromstring(file)
+
+    svg_attribs = tree.attrib.copy()
 
     for a in tuple(tree.findall(".//{*}a")):
         if not a.attrib.get("href", "www"):
@@ -235,7 +239,7 @@ def scrape_svg(file: TextIOBase|str) -> _Scraped:
         if path[:]:
             warnings.warn(f"There are <path> children remaining : {', '.join(map(str, path))}")
 
-    rv = _Scraped(paths=paths)
+    rv = _Scraped(svg_attribs=svg_attribs, paths=paths)
     return rv
 
 
@@ -270,6 +274,7 @@ json_dump = partial(json.dump, default=json_serializer)
 
 @dataclasses.dataclass
 class _Organized[G]:
+    svg_attribs: dict[str, str]
     structural_paths: dict[str, _Path]
     seats: Mapping[int, _Path]
     # only the following two should be mutated, generally, and only by values
@@ -309,7 +314,7 @@ class _Organized[G]:
             grouped_seats[group].append(i)
 
         grouped_seats.default_factory = None
-        return _Organized(paths, seats_dict, grouped_seats, {g: c for c, g in color_groups.items()})
+        return _Organized(scraped.svg_attribs, paths, seats_dict, grouped_seats, {g: c for c, g in color_groups.items()})
 
 # pseudo-svg nodes
 @dataclasses.dataclass
@@ -331,12 +336,13 @@ class G(Path):
 
 @dataclasses.dataclass
 class SVG(G):
-    attrib: dict[str, str] = dataclasses.field(default_factory={
+    attrib: dict[str, str] = dataclasses.field(default_factory=dict)
+    tag: ClassVar[str] = "svg"
+
+    NAMESPACE_ATTRIB: ClassVar[dict[str, str]] = {
         "xmlns": "http://www.w3.org/2000/svg",
         "xmlns:xlink": "http://www.w3.org/1999/xlink",
-        "version": "1.1",
-    }.copy) # TODO: get this from the scrape
-    tag: ClassVar[str] = "svg"
+    }
 
 def get_svg_pseudo_xml(organized_data: _Organized, *,
         seats_blacklist: Collection[int] = (),
@@ -360,7 +366,7 @@ def get_svg_pseudo_xml(organized_data: _Organized, *,
     else:
         seats_whitelist = organized_data.seats.keys() - seats_blacklist
 
-    svg = SVG()
+    svg = SVG(organized_data.svg_attribs)
     svg_direct_content = svg.children # TODO: rename to svg_children or sth
 
     for name, path in organized_data.structural_paths.items():
@@ -467,6 +473,8 @@ def get_svg_tree(svg: SVG, *,
         attrib = {replace_fname(k): replace_color(v) for k, v in c.attrib.items() if v is not None}
         if None in attrib.values():
             warnings.warn(f"None value in attrib: {attrib}, build not done properly")
+        if isinstance(c, SVG):
+            attrib = SVG.NAMESPACE_ATTRIB | attrib
 
         if isinstance(c, G):
             raw_children = list(c.children)
@@ -498,7 +506,18 @@ def get_svg_tree(svg: SVG, *,
 
     svg_element = to_ET(svg)
     if pop_main_transform:
-        svg_element.attrib.pop("transform", None)
+        transform = svg_element.attrib.get("transform", None)
+        if transform is not None:
+            if m := re.fullmatch(r"scale\(([\d\.]+)\)", transform):
+                scale = float(m.group(1))
+                del svg_element.attrib["transform"]
+
+                viewBox = svg_element.attrib.get("viewBox", None)
+                if viewBox is not None:
+                    x, y, w, h = map(float, viewBox.split())
+                    svg_element.attrib["viewBox"] = f"{x/scale} {y/scale} {w/scale} {h/scale}"
+
+                #TODO: do the same for height and width, but not if they're percentages
     et = ET.ElementTree(svg_element)
     if indent is not None:
         ET.indent(et, indent)
