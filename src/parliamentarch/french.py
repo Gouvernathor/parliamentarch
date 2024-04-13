@@ -5,7 +5,7 @@ from functools import partial
 from io import TextIOBase
 import json
 import re
-from typing import Any, Self
+from typing import Any, ClassVar, Self
 import warnings
 import xml.etree.ElementTree as ET
 
@@ -311,6 +311,33 @@ class _Organized[G]:
         grouped_seats.default_factory = None
         return _Organized(paths, seats_dict, grouped_seats, {g: c for c, g in color_groups.items()})
 
+# pseudo-svg nodes
+@dataclasses.dataclass
+class Path: # TODO: rename this shit
+    attrib: dict[str, str]
+    tag: ClassVar[str] = "path"
+
+def Path_from_other_Path(p: _Path) -> Path:
+    return Path({field.name: getattr(p, field.name) for field in dataclasses.fields(p)})
+
+@dataclasses.dataclass
+class G(Path):
+    children: list[Path] = dataclasses.field(default_factory=list)
+    @property
+    def tag(self) -> str:
+        if "href" in self.attrib:
+            return "a"
+        return "g"
+
+@dataclasses.dataclass
+class SVG(G):
+    attrib: dict[str, str] = dataclasses.field(default_factory={
+        "xmlns": "http://www.w3.org/2000/svg",
+        "xmlns:xlink": "http://www.w3.org/1999/xlink",
+        "version": "1.1",
+    }.copy) # TODO: get this from the scrape
+    tag: ClassVar[str] = "svg"
+
 def get_svg_tree(organized_data: _Organized, *,
         seats_blacklist: Collection[int] = (),
         seats_whitelist: Collection[int] = (),
@@ -334,30 +361,21 @@ def get_svg_tree(organized_data: _Organized, *,
     else:
         seats_whitelist = organized_data.seats.keys() - seats_blacklist
 
-    @dataclasses.dataclass
-    class G:
-        attrib: dict[str, str]
-        children: Sequence["G|_Path"]
-        @property
-        def tag(self) -> str:
-            if "href" in self.attrib:
-                return "a"
-            return "g"
-
-    svg_direct_content: list[G|_Path] = []
+    svg = SVG()
+    svg_direct_content = svg.children # TODO: rename to svg_children or sth
 
     for name, path in organized_data.structural_paths.items():
         if toggles.pop(name, True):
-            svg_direct_content.append(path)
+            svg_direct_content.append(Path_from_other_Path(path))
     if error_on_extra_toggles and toggles:
         raise ValueError("The following toggles were not found among the structural paths : " + ", ".join(toggles))
 
     # TODO: check if the clazz attribute should be censored as well
     PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
-    remaining: dict[tuple[int, ...], frozenset[str]] = {}
+    remaining: dict[tuple[int, ...], frozenset[str]] = {(): PATH_FIELDS_TO_GROUP}
     # make a g for each color (with at least a fill attribute), and put the seats inside
     for gid, seat_nb_list in organized_data.grouped_seats.items():
-        g = G({}, [organized_data.seats[i] for i in seat_nb_list if i in seats_whitelist])
+        g = G({}, [Path_from_other_Path(organized_data.seats[i]) for i in seat_nb_list if i in seats_whitelist])
 
         color = organized_data.group_colors[gid]
         if color is not None:
@@ -365,40 +383,43 @@ def get_svg_tree(organized_data: _Organized, *,
         elif not include_none_seats:
             continue
 
-        remaining[(len(svg_direct_content),)] = PATH_FIELDS_TO_GROUP
         svg_direct_content.append(g)
 
-    def get_index(i, *idx:int) -> G:
-        e = svg_direct_content[i]
+    def get_at_index(*idx:int) -> G:
+        e: G = svg
         for i in idx:
-            e = e.children[i]
+            e = e.children[i] # type: ignore
         return e
 
     # TODO: check this for None values (should be fine but check again)
     while remaining:
-        indices, fields = next(iter(remaining.items()))
+        indices, fields = remaining.popitem()
         if not fields:
-            del remaining[indices]
             continue
 
-        g = get_index(*indices)
+        g = get_at_index(*indices)
+
+        for child in g.children:
+            if isinstance(child, G) and not child.attrib:
+                i = g.children.index(child)
+                g.children[i:i+1] = child.children
+
         per_field_value: dict[str, dict[str, list[_Path]]] = {}
         for field in fields:
             this_fields_values = per_field_value[field] = defaultdict(list)
             for child in g.children:
-                this_fields_values[getattr(child, field)].append(child) # type: ignore
+                this_fields_values[child.attrib.get(field, None)].append(child) # type: ignore
 
             if len(this_fields_values) == 1:
                 field_value = next(iter(this_fields_values))
                 if field_value is not None:
                     g.attrib[field] = field_value
                     for child in g.children:
-                        setattr(child, field, None)
+                        child.attrib.pop(field, None)
                 del per_field_value[field]
                 fields -= {field}
 
         if not per_field_value:
-            del remaining[indices]
             continue
 
         # field with minimal number of different values
@@ -413,46 +434,17 @@ def get_svg_tree(organized_data: _Organized, *,
             elif (minfield != "href") and (len(pathlist) == 1):
                 new_gs.append(pathlist[0])
             else:
-                new_gs.append(G({minfield: value}, pathlist))
+                new_gs.append(G({minfield: value}, pathlist)) # type: ignore
         g.children = new_gs
 
-        del remaining[indices]
         fields -= {minfield}
         if fields:
+            remaining[indices] = fields
             for i, sub_g in enumerate(new_gs):
                 if isinstance(sub_g, G):
                     remaining[indices+(i,)] = fields
 
-    # a final pass for the all-encompassing gs, putting those with common attribs in encompassing gs
-    # just once for attribs common to all
-    # (meant for the transform field)
-    for g in svg_direct_content:
-        if isinstance(g, G):
-            main_g_attribs: dict[str, str] = g.attrib.copy()
-            break
-    for elem in svg_direct_content:
-        if isinstance(elem, G):
-            for k, v in tuple(main_g_attribs.items()):
-                if elem.attrib.get(k, not v) != v:
-                    del main_g_attribs[k]
-        else:
-            for k, v in tuple(main_g_attribs.items()):
-                if getattr(elem, k, not v) != v:
-                    del main_g_attribs[k]
-    if main_g_attribs:
-        for g in tuple(svg_direct_content):
-            if isinstance(g, G):
-                for k in main_g_attribs:
-                    del g.attrib[k]
-                if not g.attrib:
-                    i = svg_direct_content.index(g)
-                    svg_direct_content[i:i+1] = g.children
-            else:
-                for k in main_g_attribs:
-                    setattr(g, k, None)
-        svg_direct_content = [G(main_g_attribs, svg_direct_content)]
-
-    def to_ET(c: G|_Path) -> ET.Element:
+    def to_ET(c: Path) -> ET.Element:
         def replace_fname(n):
             if n == "clazz":
                 return "class"
@@ -463,9 +455,19 @@ def get_svg_tree(organized_data: _Organized, *,
                 return str(o)
             return o
 
-        if isinstance(c, _Path):
-            attrib = {replace_fname(fname): replace_color(v) for field in dataclasses.fields(c) if (v := getattr(c, (fname := field.name))) is not None}
+        attrib = {replace_fname(k): replace_color(v) for k, v in c.attrib.items() if v is not None}
+        if None in attrib.values():
+            warnings.warn(f"None value in attrib: {attrib}, build not done properly")
 
+        if isinstance(c, G):
+            raw_children = list(c.children)
+            for child in c.children:
+                if isinstance(child, G) and not child.attrib:
+                    raw_children.remove(child)
+                    raw_children.extend(child.children)
+
+            children = map(to_ET, raw_children)
+        else:
             title = attrib.pop("title", None)
             if title:
                 if isinstance(title, ET.Element):
@@ -477,39 +479,15 @@ def get_svg_tree(organized_data: _Organized, *,
             else:
                 children = ()
 
-            tag = "path"
-
-        else:
-            attrib = {replace_fname(k): replace_color(v) for k, v in c.attrib.items()}
-            if None in attrib.values():
-                warnings.warn(f"None value in attrib: {attrib}, build not done properly")
-
-            raw_children = list(c.children)
-            for child in c.children:
-                if isinstance(child, G) and not child.attrib:
-                    raw_children.remove(child)
-                    raw_children.extend(child.children)
-
-            children = map(to_ET, raw_children)
-
-            tag = c.tag
-            if tag == "g" and attrib.get("tabindex", "0") == "-1":
-                del attrib["tabindex"]
+        tag = c.tag
+        if tag == "g" and attrib.get("tabindex", "0") == "-1":
+            del attrib["tabindex"]
 
         e = ET.Element(tag, attrib)
         e.extend(children)
         return e
 
-    svg = ET.Element("svg", {
-        "xmlns": "http://www.w3.org/2000/svg",
-        "xmlns:xlink": "http://www.w3.org/1999/xlink",
-        "version": "1.1",
-    })
-    # manage size and other properties
-
-    svg.extend(map(to_ET, svg_direct_content))
-
-    et = ET.ElementTree(svg)
+    et = ET.ElementTree(to_ET(svg))
     if indent is not None:
         ET.indent(et, indent)
     return et
