@@ -338,13 +338,12 @@ class SVG(G):
     }.copy) # TODO: get this from the scrape
     tag: ClassVar[str] = "svg"
 
-def get_svg_tree(organized_data: _Organized, *,
+def get_svg_pseudo_xml(organized_data: _Organized, *,
         seats_blacklist: Collection[int] = (),
         seats_whitelist: Collection[int] = (),
-        indent: str|None = "    ",
         include_none_seats: bool = False,
         error_on_extra_toggles: bool = True,
-        **toggles: bool) -> ET.ElementTree:
+        **toggles: bool) -> SVG:
     """
     include_none_seats being False (the default) means not writing
     the seats whose color is None.
@@ -370,9 +369,6 @@ def get_svg_tree(organized_data: _Organized, *,
     if error_on_extra_toggles and toggles:
         raise ValueError("The following toggles were not found among the structural paths : " + ", ".join(toggles))
 
-    # TODO: check if the clazz attribute should be censored as well
-    PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
-    remaining: dict[tuple[int, ...], frozenset[str]] = {(): PATH_FIELDS_TO_GROUP}
     # make a g for each color (with at least a fill attribute), and put the seats inside
     for gid, seat_nb_list in organized_data.grouped_seats.items():
         g = G({}, [Path_from_other_Path(organized_data.seats[i]) for i in seat_nb_list if i in seats_whitelist])
@@ -384,6 +380,17 @@ def get_svg_tree(organized_data: _Organized, *,
             continue
 
         svg_direct_content.append(g)
+
+    return svg
+
+def get_svg_tree(
+        svg,
+        indent: str|None = "    ",
+        ) -> ET.ElementTree:
+
+    # TODO: check if the clazz attribute should be censored as well
+    PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
+    remaining: dict[tuple[int, ...], frozenset[str]] = {(): PATH_FIELDS_TO_GROUP}
 
     def get_at_index(*idx:int) -> G:
         e: G = svg
@@ -496,13 +503,14 @@ def main(in_fn, out_fn=None):
     with open(in_fn) as f:
         scraped = scrape_svg(f.read())
     organized = _Organized.from_scraped(scraped)
-    tree = get_svg_tree(organized, include_none_seats=True)
+    pseudo_xml_svg = get_svg_pseudo_xml(organized, include_none_seats=True)
+    tree = get_svg_tree(pseudo_xml_svg)
 
     if out_fn is not None:
         with open(out_fn, "w+") as f:
             tree.write(f, encoding="unicode", xml_declaration=False)
 
-    return scraped, organized, tree
+    return scraped, organized, pseudo_xml_svg, tree
 
 if __name__ == "__main__":
     import sys
@@ -510,4 +518,4 @@ if __name__ == "__main__":
         out_fn = None
         if len(sys.argv) >= 3:
             out_fn = sys.argv[2]
-        scraped, organized, tree = main(sys.argv[1], out_fn)
+        scraped, organized, pseudo_xml_svg, tree = main(sys.argv[1], out_fn)
