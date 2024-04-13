@@ -428,10 +428,8 @@ def get_svg_tree(svg: SVG, *,
         if not per_field_value:
             continue
 
-        # field with minimal number of different values
-        minfield = min(per_field_value, key=lambda f:len(per_field_value[f]))
-        # TODO: maybe take all the fields with that exact list
-        # not necessary but may be quicker
+        # field with minimal number of different values (and first alphabetical for consistency)
+        minfield = min(per_field_value, key=lambda f:(len(per_field_value[f]), f))
 
         new_children = []
         for value, childlist in per_field_value[minfield].items():
