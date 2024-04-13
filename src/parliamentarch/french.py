@@ -385,10 +385,7 @@ def get_svg_pseudo_xml(organized_data: _Organized, *,
 
 PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id", "fill"}
 
-def get_svg_tree(svg: SVG, *,
-        indent: str|None = "    ",
-        ) -> ET.ElementTree:
-
+def reduce_pseudo_xml_svg(svg: SVG,) -> None:
     # TODO: check if the clazz attribute should be censored as well
     remaining: dict[tuple[int, ...], frozenset[str]] = {(): PATH_FIELDS_TO_GROUP}
 
@@ -450,6 +447,11 @@ def get_svg_tree(svg: SVG, *,
                 if isinstance(child, G):
                     remaining[indices+(i,)] = fields
 
+
+def get_svg_tree(svg: SVG, *,
+        indent: str|None = "    ",
+        ) -> ET.ElementTree:
+
     def to_ET(c: Path) -> ET.Element:
         def replace_fname(n):
             if n == "clazz":
@@ -503,6 +505,7 @@ def main(in_fn, out_fn=None):
         scraped = scrape_svg(f.read())
     organized = _Organized.from_scraped(scraped)
     pseudo_xml_svg = get_svg_pseudo_xml(organized, include_none_seats=True)
+    reduce_pseudo_xml_svg(pseudo_xml_svg)
     tree = get_svg_tree(pseudo_xml_svg)
 
     if out_fn is not None:
