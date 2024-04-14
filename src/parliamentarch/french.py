@@ -242,6 +242,8 @@ def scrape_svg(file: TextIOBase|str) -> _Scraped:
     rv = _Scraped(svg_attribs=svg_attribs, paths=paths)
     return rv
 
+# TODO: save the permanent data, excluding the seat colors, to a committed json file
+
 
 def json_serializer(o: object) -> Any:
     """
