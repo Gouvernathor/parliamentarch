@@ -253,7 +253,7 @@ def json_serializer(o: object) -> Any:
         return str(o)
     if dataclasses.is_dataclass(o) and not isinstance(o, type):
         # return dataclasses.asdict(o) # recursive, bad
-        return {f.name: getattr(o, f.name) for f in dataclasses.fields(o)}
+        return {f.name: value for f in dataclasses.fields(o) if (value := getattr(o, f.name)) is not None}
     if isinstance(o, ET.Element) and (o.tag.rpartition("}")[2] == "title") and (not o.attrib) and (not o[:]) and o.text:
         return o.text
     raise TypeError(f"Cannot serialize {o!r}.")
@@ -263,7 +263,7 @@ def json_object_hook(d: dict[str, Any]) -> Any:
     To be passed as the `object_hook` parameter to `json.load` or `json.loads`.
     """
     for typ in (_Organized, _Path, _Scraped, Color):
-        if d.keys() == {f.name for f in dataclasses.fields(typ)}:
+        if d.keys() <= {f.name for f in dataclasses.fields(typ)}:
             return typ(**d)
     return d
 
