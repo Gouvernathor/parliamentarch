@@ -1,5 +1,5 @@
 from .scrape import scrape_svg
-from .organize import _Organized
+from .organize import Organized
 from .pseudo_xml import get_svg_pseudo_xml
 from .export import get_svg_tree
 
@@ -7,7 +7,7 @@ from .export import get_svg_tree
 def main(in_fn, out_fn=None):
     with open(in_fn) as f:
         scraped = scrape_svg(f.read())
-    organized = _Organized.from_scraped(scraped)
+    organized = Organized.from_scraped(scraped)
     pseudo_xml_svg = get_svg_pseudo_xml(organized, include_none_seats=True, reduce=True)
     tree = get_svg_tree(pseudo_xml_svg)
 
