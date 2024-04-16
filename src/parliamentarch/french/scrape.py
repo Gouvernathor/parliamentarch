@@ -51,7 +51,7 @@ class Color:
     __repr__ = __str__
 
 @dataclasses.dataclass
-class _Path:
+class Scraped_Path:
     d: str
     transform: str|None = None
     clazz: str|None = None
@@ -65,12 +65,12 @@ class _Path:
     stroke_width: str|None = None
 
 @dataclasses.dataclass
-class _Scraped:
+class Scraped:
     svg_attribs: dict[str, str]
-    paths: Mapping[str, _Path]
+    paths: Mapping[str, Scraped_Path]
 
     @staticmethod
-    def pop_seats(paths: dict[str, _Path], pop: bool, yield_nones: bool):
+    def pop_seats(paths: dict[str, Scraped_Path], pop: bool, yield_nones: bool):
         """
         Pops the seats off from the path dict *passed* to it,
         not the paths dict of the instance it's called on (since this is a static method)
@@ -92,9 +92,9 @@ class _Scraped:
                 nones = 0
                 yield val
 
-    # seats: Sequence[_Path|None]
+    # seats: Sequence[Scraped_Path|None]
     @property
-    def seats(self) -> Iterable[_Path|None]:
+    def seats(self) -> Iterable[Scraped_Path|None]:
         # turn into cachedproperty if made frozen
         return self.pop_seats(dict(self.paths), pop=False, yield_nones=True)
 
@@ -111,7 +111,7 @@ class _Scraped:
         rv.default_factory = None
         return rv
 
-def scrape_svg(file: TextIOBase|str) -> _Scraped:
+def scrape_svg(file: TextIOBase|str) -> Scraped:
     # there is one circle in the svg, which is intentionally not scraped
     # TODO: store the circle's coordinates (discard the radius), maybe store its color
     # store the SVG params (class size params...)
@@ -202,7 +202,7 @@ def scrape_svg(file: TextIOBase|str) -> _Scraped:
             fill = style_dict.pop("fill", None)
 
         path_kwargs = {k: pattrib.pop(k, None) for k in ("stroke", "stroke_linejoin", "stroke_width")}
-        path_object = _Path(
+        path_object = Scraped_Path(
             d=pattrib.pop("d"),
             transform=transform,
             clazz=clazz,
@@ -238,7 +238,7 @@ def scrape_svg(file: TextIOBase|str) -> _Scraped:
         if path[:]:
             warnings.warn(f"There are <path> children remaining : {', '.join(map(str, path))}")
 
-    rv = _Scraped(svg_attribs=svg_attribs, paths=paths)
+    rv = Scraped(svg_attribs=svg_attribs, paths=paths)
     return rv
 
 # TODO: save the permanent data, excluding the seat colors, to a committed json file

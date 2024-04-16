@@ -4,8 +4,8 @@ import json
 from typing import Any
 import xml.etree.ElementTree as ET
 
-from .organize import _Organized
-from .scrape import _Path, _Scraped, Color
+from .organize import Organized
+from .scrape import Scraped_Path, Scraped, Color
 
 
 def json_serializer(o: object) -> Any:
@@ -27,7 +27,7 @@ def json_object_hook(d: dict[str, Any]) -> Any:
     """
     typname = d.pop("__typename__", None)
     if typname:
-        for typ in (_Organized, _Path, _Scraped, Color):
+        for typ in (Organized, Scraped_Path, Scraped, Color):
             if typ.__name__ == typname:
                 return typ(**d)
     return d

@@ -3,17 +3,17 @@ from collections.abc import Collection
 import dataclasses
 from typing import ClassVar
 
-from .organize import _Organized
-from .scrape import _Path
+from .organize import Organized
+from .scrape import Scraped_Path
 
 
 # pseudo-svg nodes
 @dataclasses.dataclass
-class Path: # TODO: rename this shit
+class Path:
     attrib: dict[str, str]
     tag: ClassVar[str] = "path"
 
-def Path_from_other_Path(p: _Path) -> Path:
+def Path_from_other_Path(p: Scraped_Path) -> Path:
     return Path({field.name: getattr(p, field.name) for field in dataclasses.fields(p)})
 
 @dataclasses.dataclass
@@ -35,7 +35,7 @@ class SVG(G):
         "xmlns:xlink": "http://www.w3.org/1999/xlink",
     }
 
-def get_svg_pseudo_xml(organized_data: _Organized, *,
+def get_svg_pseudo_xml(organized_data: Organized, *,
         seats_blacklist: Collection[int] = (),
         seats_whitelist: Collection[int] = (),
         include_none_seats: bool = False,
@@ -85,7 +85,7 @@ def get_svg_pseudo_xml(organized_data: _Organized, *,
     return svg
 
 # TODO: check if the clazz attribute should be censored as well
-PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(_Path)) - {"d", "id"}
+PATH_FIELDS_TO_GROUP = frozenset(f.name for f in dataclasses.fields(Scraped_Path)) - {"d", "id"}
 
 def reduce_pseudo_xml_svg(svg: SVG,) -> None:
     remaining: dict[tuple[int, ...], frozenset[str]] = {(): PATH_FIELDS_TO_GROUP}
