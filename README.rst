@@ -21,18 +21,23 @@ of the hemicycle:
   top right corners of the rectangle are empty).
 - The seats will placed in rows, such that:
   - The rows are semicircular arcs concentric to the inner and outer arcs.
+
   - The difference between the radii of two consecutive rows is a constant
     called the "row thickness" (radii is the plural of radius).
+
   - The seat are circles (or disk) of equal radius. That radius divided by the
     row thickness makes the "seat radius factor".
+
   - The center of a seat is on the arc of that seat's row.
   - In a given row, the distance between two neighboring seats is a constant.
   - The innermost row's arc is the inner arc.
   - The radius of the outermost row's arc is equal to the radius of the outer
     arc minus half of the row thickness, such that no seat may overlap the
     outer arc.
+
   - The bottom-most seats of each row, which means the first and last seat of
     each row, are tangent to the bottom of the rectangle.
+
   - When only one seat is placed in a row, the previous rule does not apply and
     the seat is placed at the horizontal center of the diagram.
 
