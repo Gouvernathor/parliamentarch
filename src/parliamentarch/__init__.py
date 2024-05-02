@@ -7,12 +7,12 @@ from ._util import filter_kwargs, get_from_write
 
 __all__ = ("get_svg_from_attribution", "write_svg_from_attribution", "SeatData")
 
-_GET_SEATS_CENTERS_PARAMS = {k for k, p in signature(get_seats_centers).parameters.items() if p.kind==p.KEYWORD_ONLY}
-_WRITE_GROUPED_SVG_PARAMS = {k for k, p in signature(write_grouped_svg).parameters.items() if p.kind==p.KEYWORD_ONLY}
+_GET_SEATS_CENTERS_PARAM_NAMES = {k for k, p in signature(get_seats_centers).parameters.items() if p.kind==p.KEYWORD_ONLY}
+_WRITE_GROUPED_SVG_PARAM_NAMES = {k for k, p in signature(write_grouped_svg).parameters.items() if p.kind==p.KEYWORD_ONLY}
 
 def write_svg_from_attribution(file: TextIOBase, attrib: dict[SeatData, int], **kwargs) -> None:
     nseats = sum(attrib.values())
-    get_seats_centers_kwargs, write_grouped_svg_kwargs, kwargs = filter_kwargs(_GET_SEATS_CENTERS_PARAMS, _WRITE_GROUPED_SVG_PARAMS, **kwargs)
+    get_seats_centers_kwargs, write_grouped_svg_kwargs, kwargs = filter_kwargs(_GET_SEATS_CENTERS_PARAM_NAMES, _WRITE_GROUPED_SVG_PARAM_NAMES, **kwargs)
 
     if kwargs:
         raise TypeError("Unknown parameters : " + ", ".join(kwargs))
