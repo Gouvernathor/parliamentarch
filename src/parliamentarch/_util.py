@@ -1,6 +1,6 @@
 from collections.abc import Container, Sequence
 from io import StringIO
-from typing import Any, NamedTuple
+from typing import NamedTuple
 
 class FactoryDict(dict):
     def __init__(self, default_factory, *args, **kwargs):
@@ -47,10 +47,10 @@ def get_from_write(write_func):
         return sio.getvalue()
     return get
 
-def filter_kwargs(
+def filter_kwargs[V](
         *sets: Container[str],
-        **kwargs: Any,
-        ) -> list[dict[str, Any]]:
+        **kwargs: V,
+        ) -> list[dict[str, V]]:
     """
     The length of the list is one more than the number of sets passed.
     The sets may actually be any container.
