@@ -63,8 +63,7 @@ def filter_kwargs[V](
         for k in tuple(kwargs):
             if k in s:
                 rvdict[k] = kwargs.pop(k)
-        if not kwargs:
-            break
+        rvdicts.append(rvdict)
 
     rvdicts.append(kwargs)
     return rvdicts
