@@ -1,0 +1,19 @@
+[project]
+dynamic = ["version"]
+name = "ParliamentArch"
+requires-python = ">= 3.12"
+authors = [
+  {name = "Gouvernathor"}
+]
+description = "Generation of arch-styled parliamentary arches"
+readme = "README.rst"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/Gouvernathor/parliamentarch"
+
+[build-system]
+requires = ["setuptools>=64", "setuptools_scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
