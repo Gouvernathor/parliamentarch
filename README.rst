@@ -248,4 +248,4 @@ Todos and future features
   - Maybe just give a style method ?
 - Add tests
 - Add the option to force all rows to contain an even number of seats
-- Add a CLI for SVG files generation
+- Add a simpler way to input parameters in CLI
