@@ -18,7 +18,7 @@ def write_svg_from_attribution(file: TextIOBase, attrib: dict[SeatData, int], **
         raise TypeError("Unknown parameters : " + ", ".join(kwargs))
 
     results = get_seats_centers(nseats, **get_seats_centers_kwargs)
-    seat_centers_by_group = dispatch_seats(attrib, sorted(results, key=results.get, reverse=True))
+    seat_centers_by_group = dispatch_seats(attrib, sorted(results, key=results.__getitem__, reverse=True))
     write_grouped_svg(file, seat_centers_by_group, results.seat_actual_radius, **write_grouped_svg_kwargs)
 
 get_svg_from_attribution = get_from_write(write_svg_from_attribution)
