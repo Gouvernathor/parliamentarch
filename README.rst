@@ -241,16 +241,11 @@ SeatData and dispatch_seats may be moved to another module in the future.
 Todos and future features
 -------------------------
 
-- Document the new SVG direct content
 - Have the main functions support a sequence of SeatData objects using ``dict.fromkeys(seq, 1)``
 - Allow SeatData to take some <a> element properties (like href), and if so use <a> instead of <g>
 - Allow SeatData to contain more creative SVG content like gradients
   - Maybe give it a .wrap method that wraps the circles in a g or a, and make it subclassable ?
   - Maybe just give a style method ?
-- Move the SVG direct content to the module root, move svg_base to svg, and stop importing geometry into root
-- Add LICENSE
 - Add tests
 - Add the option to force all rows to contain an even number of seats
-- Enquire about the unsure_param in svg
-- Maybe add support for named colors, if acceptable in SVG
 - Add a CLI for SVG files generation
