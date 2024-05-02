@@ -97,6 +97,13 @@ object. The parameters are as follows:
 Instead of writing it to a file, this function returns the SVG content as a
 string. The parameters are otherwise the same.
 
+Command-line interface
+----------------------
+
+(To be documented)
+
+Use ``py -m parliamentarch -h`` in the meantime.
+
 Geometry submodule contents
 ---------------------------
 

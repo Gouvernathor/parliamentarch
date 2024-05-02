@@ -100,6 +100,13 @@ fourni. Les paramètres sont les suivants :
 Au lieu d'écrire dans un fichier, cette fonction renvoie le contenu au format
 SVG dans une chaîne de caractères. Les autres paramètres sont identiques.
 
+Interface en ligne de commande
+------------------------------
+
+(À documented)
+
+Voir ``py -m parliamentarch -h`` en attendant.
+
 Contenu du sous-module geometry
 -------------------------------
 
