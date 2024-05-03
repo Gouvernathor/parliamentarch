@@ -2,6 +2,7 @@ from collections.abc import Iterable
 from functools import cached_property
 from io import TextIOBase
 import re
+import warnings
 
 from ._util import Color, UnPicklable, get_from_write
 
@@ -51,11 +52,15 @@ def dispatch_seats[S](
     The length of the iterable should be the sum of the values in the dict.
     Typically the groups are ordered from the left to the right,
     and the seats are ordered from the left to the right.
+    If too few seats are passed, an exception is raised.
+    If too many seats are passed, a warning is emitted.
     """
     its = iter(seats)
     rv = {}
     for group, nseats in group_seats.items():
         rv[group] = [next(its) for _ in range(nseats)]
+    if tuple(its):
+        warnings.warn("Too many seats were passed to dispatch_seats.")
     return rv
 
 
