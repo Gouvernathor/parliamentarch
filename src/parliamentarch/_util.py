@@ -1,4 +1,5 @@
 from collections.abc import Container, Sequence
+import inspect
 from io import StringIO
 from typing import NamedTuple
 
@@ -43,6 +44,10 @@ def get_from_write(write_func):
         sio = StringIO()
         write_func(sio, *args, **kwargs)
         return sio.getvalue()
+
+    write_sig = inspect.signature(write_func)
+    _, *params = write_sig.parameters.values()
+    get.__signature__ = write_sig.replace(parameters=params)
     return get
 
 def filter_kwargs[V](
