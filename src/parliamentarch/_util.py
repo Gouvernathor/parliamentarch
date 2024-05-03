@@ -28,9 +28,7 @@ class Color(NamedTuple):
         if isinstance(o, cls):
             return o
         if isinstance(o, str):
-            oo = o
-            if oo.startswith("#"):
-                oo = oo[1:]
+            oo = o.removeprefix("#")
             if set(oo).issubset("0123456789abcdefABCDEF"):
                 if len(oo) in (3, 4):
                     oo = "".join(2*c for c in oo)
