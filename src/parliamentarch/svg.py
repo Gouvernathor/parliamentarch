@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from functools import cached_property
 from io import TextIOBase
+import math
 import re
 import warnings
 
@@ -82,6 +83,7 @@ def write_grouped_svg(
         margins: float|tuple[float, float]|tuple[float, float, float, float] = 5.,
         write_number_of_seats: bool = True,
         font_size_factor: float = 36/175,
+        span_angle: float|None = None,
         ) -> None:
     """
     The margins is either a single value for all four sides,
@@ -98,9 +100,14 @@ def write_grouped_svg(
         margins = margins + margins
     left_margin, top_margin, right_margin, bottom_margin = margins
 
+    height = top_margin + canvas_size + bottom_margin
+    if span_angle is not None and (span_angle>180):
+        height += canvas_size * math.sin((span_angle-180)*math.pi/180/2)
+        # TODO: align the text vertically such that 180 is the same and 360 is at the center of the circle
+
     _write_svg_header(file,
         width=left_margin+2*canvas_size+right_margin,
-        height=top_margin+canvas_size+bottom_margin)
+        height=height)
     if write_number_of_seats:
         font_size = round(font_size_factor * canvas_size)
         _write_svg_number_of_seats(file, sum(map(len, seat_centers_by_group.values())),

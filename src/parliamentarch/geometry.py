@@ -95,6 +95,7 @@ class _SeatsCenterContainer(dict[tuple[float, float], float], UnPicklable):
     """
     seat_radius_factor: float
     nrows: int
+    span_angle: float
 
     @property
     def row_thickness(self):
@@ -214,4 +215,5 @@ def get_seats_centers(nseats: int, *,
 
     positions.seat_radius_factor = seat_radius_factor
     positions.nrows = nrows
+    positions.span_angle = span_angle
     return positions
