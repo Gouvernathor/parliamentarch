@@ -99,7 +99,7 @@ def write_grouped_svg(
     if write_number_of_seats:
         font_size = round(font_size_factor * canvas_size)
         _write_svg_number_of_seats(file, sum(map(len, seat_centers_by_group.values())),
-            x=left_margin+canvas_size, y=top_margin+canvas_size, font_size=font_size)
+            x=left_margin+canvas_size, y=top_margin+(canvas_size*170/175), font_size=font_size)
     _write_grouped_svg_seats(file, seat_centers_by_group, seat_actual_radius,
         canvas_size=canvas_size, left_margin=left_margin, top_margin=top_margin)
     _write_svg_footer(file)
