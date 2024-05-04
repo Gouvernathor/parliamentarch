@@ -89,6 +89,10 @@ class FillingStrategy(enum.StrEnum):
     """
 
 class _SeatsCenterContainer(dict[tuple[float, float], float], UnPicklable):
+    """
+    Stores the coordinates of each seat as keys, the counterclockwise angle as values,
+    and other data as attributes.
+    """
     seat_radius_factor: float
     nrows: int
 
