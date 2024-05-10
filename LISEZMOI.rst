@@ -27,7 +27,7 @@ suivent la forme de l'hémicycle :
   - La différence entre les rayons de deux rangées consécutives est une
     constante appelée "épaisseur de rangée".
   - Les sièges sont des cercles (ou des disques) de rayon égal. Ce rayon divisé
-    par l'épaisseur de rangée donne le "ratio de rayon de siège".
+    par la moitié de l'épaisseur de rangée donne le "ratio de rayon de siège".
   - Le centre d'un siège est placé sur l'arc de la rangée dont il fait partie.
   - Dans une rangée donnée, la distance entre deux sièges voisins est constante.
   - La rangée la plus intérieure est l'arc de cercle le plus petit ayant servi à
@@ -60,8 +60,8 @@ changer la forme de l'hémicycle.
 - L'angle sur lequel s'étend l'hémicycle peut être réduit en-dessous de 180°
   (les valeurs plus grandes ne sont pas supportées). Cependant, le cas où
   l'angle est suffisament aigü pour empêcher une rangée de contenir un seul
-  siège n'est pas supporté, et pourra causer des erreurs dans des versions
-  futures.
+  siège n'est pas supporté, peut donner des résultats incorrects, et pourra
+  causer des erreurs dans des versions futures.
 - Le nombre de rangées peut être augmenté par rapport au minimum nécessaire pour
   contenir le nombre de sièges donné.
 - Le ratio de rayon de siège peut être ajusté entre 0 et 1, avec les sièges

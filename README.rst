@@ -25,8 +25,8 @@ of the hemicycle:
   - The difference between the radii of two consecutive rows is a constant
     called the "row thickness" (radii is the plural of radius).
 
-  - The seat are circles (or disk) of equal radius. That radius divided by the
-    row thickness makes the "seat radius factor".
+  - The seat are circles (or disks) of equal radius. That radius divided by half
+    of the row thickness makes the "seat radius factor".
 
   - The center of a seat is on the arc of that seat's row.
   - In a given row, the distance between two neighboring seats is a constant.
@@ -58,8 +58,8 @@ layout of the hemicycle. Among them:
 
 - The span angle of the hemicycle can be set to a value lower than 180° (higher
   values are not supported). However, values so low as to prevent some row from
-  containing even ones seat are not supported, and may raise errors in future
-  versions.
+  containing even one seat are not supported, will yield incorrect results, and
+  may raise errors in future versions.
 - The number of rows can be set higher than the minimum required to hold the
   provided number of seats.
 - The seat radius factor can be changed between 0 and 1, with the seats touching
