@@ -40,8 +40,8 @@ class Color(NamedTuple):
         raise ValueError(f"Cannot convert {o!r} to a {cls.__name__}")
 
 _file_parameter = Parameter("file",
-                            Parameter.POSITIONAL_ONLY,
-                            annotation=str | TextIOBase)
+    Parameter.POSITIONAL_ONLY,
+    annotation=str | TextIOBase)
 
 def write_from_get(get_func: Callable[..., str]) -> Callable[..., None]:
     def write_func(file, /, *args, **kwargs):
