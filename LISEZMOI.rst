@@ -82,10 +82,12 @@ il est exposé au sein du module principal.
 
 ``write_svg_from_attribution(file, attrib, **kwargs)``
 
-Cette fonction écrit un fichier SVG représentant un hémicycle dans le fichier
-fourni. Les paramètres sont les suivants :
+Cette fonction écrit un fichier SVG représentant un hémicycle. Les paramètres
+sont les suivants :
 
-- ``file: io.TextIOBase`` : un fichier ouvert en mode texte.
+- ``file: str|io.TextIOBase`` : un fichier ouvert en mode texte, ou le chemin
+  vers le fichier sur lequel écrire. Si un chemin est fourni, le fichier sera
+  créé si il n'existe pas, et sera écrasé sinon.
 - ``attrib: dict[SeatData, int]`` : un dictionnaire d'objets SeatData
   s'appliquant à un ensemble de sièges présents dans l'hémicycle, vers le nombre
   de sièges auxquels l'objet s'applique. Typiquement, chaque objet correspond à
@@ -95,7 +97,7 @@ fourni. Les paramètres sont les suivants :
   ``parliamentarch.geometry.get_seats_centers`` ou par
   ``parliamentarch.svg.write_svg`` peuvent être passés à cette fonction.
 
-``get_svg_from_attribution(attrib, **kwargs)``
+``get_svg_from_attribution(attrib, **kwargs) -> str``
 
 Au lieu d'écrire dans un fichier, cette fonction renvoie le contenu au format
 SVG dans une chaîne de caractères. Les autres paramètres sont identiques.
@@ -196,10 +198,12 @@ Une classe informant la représentation d'un siège ou d'un groupe de sièges.
 
 ``write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
 
-Cette fonction écrit un fichier SVG représentant un hémicycle dans le fichier
-fourni. Les paramètres sont les suivants :
+Cette fonction écrit un fichier SVG représentant un hémicycle. Les paramètres
+sont les suivants :
 
-- ``file: io.TextIOBase`` : un fichier ouvert en mode texte.
+- ``file: str|io.TextIOBase`` : un fichier ouvert en mode texte, ou le chemin
+  vers le fichier sur lequel écrire. Si un chemin est fourni, le fichier sera
+  créé si il n'existe pas, et sera écrasé sinon.
 - ``seat_centers: dict[tuple[float, float], SeatData]`` : un dictionnaire des
   coordonnées (x, y) des centres des sièges vers des objets SeatData.
 - ``seat_actual_radius: float`` : le rayon des sièges, tel que renvoyé par

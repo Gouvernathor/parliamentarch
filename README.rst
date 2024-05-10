@@ -79,10 +79,12 @@ exposed as part of the main module.
 
 ``write_svg_from_attribution(file, attrib, **kwargs)``
 
-This function writes an SVG file representing a hemicycle to the given file-like
-object. The parameters are as follows:
+This function writes an SVG file representing a hemicycle. The parameters are as
+follows:
 
-- ``file: io.TextIOBase``: a file-like object open in text mode.
+- ``file: str|io.TextIOBase``: a file-like object open in text mode, or the path
+  to the file to write on. If a path is provided, the file will be created if it
+  doesn't exist, and otherwise overwritten.
 - ``attrib: dict[SeatData, int]``: a mapping from a SeatData object applying to
   a number of seats in the resulting hemicycle, to the number of seats each
   object applies to. Typically, each SeatData object corresponds to a group or
@@ -92,7 +94,7 @@ object. The parameters are as follows:
   ``parliamentarch.geometry.get_seats_centers`` or by
   ``parliamentarch.svg.write_svg`` can be passed to this function.
 
-``get_svg_from_attribution(attrib, **kwargs)``
+``get_svg_from_attribution(attrib, **kwargs) -> str``
 
 Instead of writing it to a file, this function returns the SVG content as a
 string. The parameters are otherwise the same.
@@ -194,10 +196,12 @@ A class representing how to display a given seat or set of seats.
 
 ``write_svg(file, seat_centers, seat_actual_radius, *, canvas_size=175, margins=5., write_number_of_seats=True, font_size_factor=...)``
 
-This function writes an SVG file representing a hemicycle to the given file-like
-object. The parameters are as follows:
+This function writes an SVG file representing a hemicycle. The parameters are as
+follows:
 
-- ``file: io.TextIOBase``: a file-like object open in text mode.
+- ``file: str|io.TextIOBase``: a file-like object open in text mode, or the path
+  to the file to write on. If a path is provided, the file will be created if it
+  doesn't exist, and otherwise overwritten.
 - ``seat_centers: dict[tuple[float, float], SeatData]``: a mapping from the
   (x, y) coordinates of each seat's center to a SeatData object.
 - ``seat_actual_radius: float``: as output by ``get_seats_centers``.
