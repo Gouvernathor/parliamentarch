@@ -1,6 +1,6 @@
-from collections.abc import Container, Sequence
-import inspect
-from io import StringIO
+from collections.abc import Callable, Container, Sequence
+from inspect import Parameter, signature
+from io import TextIOBase
 from typing import NamedTuple
 
 class FactoryDict(dict):
@@ -39,16 +39,23 @@ class Color(NamedTuple):
             return cls(*o)
         raise ValueError(f"Cannot convert {o!r} to a {cls.__name__}")
 
-def get_from_write(write_func):
-    def get(*args, **kwargs) -> str:
-        sio = StringIO()
-        write_func(sio, *args, **kwargs)
-        return sio.getvalue()
+_file_parameter = Parameter("file",
+                            Parameter.POSITIONAL_ONLY,
+                            annotation=str | TextIOBase)
 
-    write_sig = inspect.signature(write_func)
-    _, *params = write_sig.parameters.values()
-    get.__signature__ = write_sig.replace(parameters=params)
-    return get
+def write_from_get(get_func: Callable[..., str]) -> Callable[..., None]:
+    def write_func(file, /, *args, **kwargs):
+        if isinstance(file, str):
+            with open(file, "w") as f:
+                return write_func(f, *args, **kwargs)
+        print(get_func(*args, **kwargs), file=file)
+
+    get_sig = signature(get_func)
+    write_sig = get_sig.replace(
+        parameters=[_file_parameter] + list(get_sig.parameters.values()))
+    write_func.__signature__ = write_sig
+    write_func.__name__ = get_func.__name__.replace("get_", "write_")
+    return write_func
 
 def filter_kwargs[V](
         *sets: Container[str],
