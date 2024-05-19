@@ -102,9 +102,7 @@ string. The parameters are otherwise the same.
 Command-line interface
 ----------------------
 
-(To be documented)
-
-Use ``py -m parliamentarch -h`` in the meantime.
+See ``py -m parliamentarch -h`` for the accepted parameters.
 
 Geometry submodule contents
 ---------------------------

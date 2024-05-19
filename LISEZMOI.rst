@@ -105,9 +105,7 @@ SVG dans une chaîne de caractères. Les autres paramètres sont identiques.
 Interface en ligne de commande
 ------------------------------
 
-(À documenter)
-
-Voir ``py -m parliamentarch -h`` en attendant.
+Voir ``py -m parliamentarch -h`` pour la liste des paramètres.
 
 Contenu du sous-module geometry
 -------------------------------
