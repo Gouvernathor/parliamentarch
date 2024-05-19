@@ -179,7 +179,7 @@ Contenu du sous-module SVG
 
 Ces éléments se trouvent dans le sous-module ``parliamentarch.svg``.
 
-``SeatData(data, color, border_size, border_color)``
+``SeatData(data, color, border_size=0, border_color="#000")``
 
 Une classe informant la représentation d'un siège ou d'un groupe de sièges.
 
