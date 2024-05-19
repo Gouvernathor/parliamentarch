@@ -20,6 +20,7 @@ of the hemicycle:
   orientation, and with the cut diameter being on the bottom (the top left and
   top right corners of the rectangle are empty).
 - The seats will placed in rows, such that:
+
   - The rows are semicircular arcs concentric to the inner and outer arcs.
 
   - The difference between the radii of two consecutive rows is a constant
