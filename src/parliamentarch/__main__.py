@@ -16,12 +16,12 @@ def main():
     # input filename (json)
     parser.add_argument("input",
         type=argparse.FileType("rb"),
-        help="""A readable JSON file containing the named parameters to use when
-        creating the diagram. The parameters are as the get_svg_from_attribution
-        function takes them, except that the "attrib" parameter should be a
-        sequence of dicts (JSON objects) with key/value pairs being parameters
-        to SeatData, and the optional nseats (defaulting to 1) being the number
-        of seats of that party.""",
+        help="""A readable JSON file containing one object whose members are the
+        named parameters to use when creating the diagram. The parameters are as
+        the get_svg_from_attribution function takes them, except for the
+        "attrib" parameter. It should instead be a sequence of JSON objects with
+        members being parameters to SeatData, and an optional "nseats" member
+        (defaulting to 1) being the number of seats for that party.""",
     )
     # each possible parameter separately ?
     # TODO do this programmatically using inspect
