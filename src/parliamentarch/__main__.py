@@ -28,7 +28,7 @@ def main():
     # only require input if not all required are passed specifically
 
     # output filename
-    parser.add_argument("--output",
+    parser.add_argument("-o", "--output",
         type=argparse.FileType("w+"), # TODO check : write mode, clobber if exists, create if not
         help="""The file in which to write the SVG diagram. If not passed, the
         SVG code will be printed in the standard output.""",
