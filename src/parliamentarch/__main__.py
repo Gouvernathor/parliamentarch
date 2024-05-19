@@ -34,17 +34,20 @@ def main():
         SVG code will be printed in the standard output.""",
         # TODO: make sure that this argument is optional and defaults to None
     )
-    # whether to print the resulting file's content (when the output file is not given)
+    # whether to print the resulting file's content (regardless of the output file being given)
     parser.add_argument("-p", "--print",
         action="store_true",
         help="""Pass this to print the SVG code in the standard output even when
         an output file is passed.""",
     )
     # if both are given, do both
-    # if none are given, only print
+    # if none are given, raise
 
 
     args = parser.parse_args()
+
+    if not (args.output or args.print):
+        parser.error("At least one of --output or --print must be passed.")
 
     with args.input as f:
         kwparams = json.load(f)
@@ -52,11 +55,10 @@ def main():
 
     result = get_svg_from_attribution(**kwparams)
 
-    file_output = args.output is not None
-    if file_output:
+    if args.output is not None:
         with args.output as f:
             f.write(result)
-    if args.print or not file_output:
+    if args.print:
         print(result)
 
 
