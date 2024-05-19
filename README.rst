@@ -258,3 +258,4 @@ Todos and future features
 - Add tests
 - Add the option to force all rows to contain an even number of seats
 - Add a simpler way to input parameters in CLI
+  - Maybe by allowing the use of the standard input to pass JSON content ?
