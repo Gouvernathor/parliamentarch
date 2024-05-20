@@ -1,6 +1,5 @@
 from collections.abc import Iterable
 from functools import cached_property
-from io import TextIOBase
 import re
 import warnings
 
