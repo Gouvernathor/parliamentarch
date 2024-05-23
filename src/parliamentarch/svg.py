@@ -1,6 +1,7 @@
 from collections.abc import Iterable
 from functools import cached_property
 import re
+from typing import TypeVar
 import warnings
 
 from ._util import Color, UnPicklable, write_from_get
@@ -38,7 +39,8 @@ class SeatData(UnPicklable):
         self.border_size = border_size
         self.border_color = accepted_color(border_color)
 
-def dispatch_seats[S](
+S = TypeVar("S") # PY3.11 compat
+def dispatch_seats(
         group_seats: dict[SeatData, int],
         seats: Iterable[S],
         ) -> dict[SeatData, list[S]]:

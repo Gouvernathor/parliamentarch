@@ -1,7 +1,7 @@
 from collections.abc import Callable, Container, Sequence
 from inspect import Parameter, signature
 from io import TextIOBase
-from typing import NamedTuple
+from typing import NamedTuple, TypeVar
 
 class FactoryDict(dict):
     def __init__(self, default_factory, *args, **kwargs):
@@ -59,7 +59,8 @@ def write_from_get(get_func: Callable[..., str]) -> Callable[..., None]:
     write_func.__name__ = get_func.__name__.replace("get_", "write_")
     return write_func
 
-def filter_kwargs[V](
+V = TypeVar("V") # PY3.11 compat
+def filter_kwargs(
         *sets: Container[str],
         **kwargs: V,
         ) -> list[dict[str, V]]:
