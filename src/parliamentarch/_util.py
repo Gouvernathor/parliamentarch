@@ -46,7 +46,7 @@ _file_parameter = Parameter("file",
 def write_from_get(get_func: Callable[..., str]) -> Callable[..., None]:
     def write_func(file, /, *args, **kwargs):
         if isinstance(file, str):
-            with open(file, "w") as f:
+            with open(file, "w", encoding="UTF-8") as f:
                 return write_func(f, *args, **kwargs)
         print(get_func(*args, **kwargs), file=file)
 
