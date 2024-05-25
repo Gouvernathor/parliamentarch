@@ -84,8 +84,9 @@ This function writes an SVG file representing a hemicycle. The parameters are as
 follows:
 
 - ``file: str|io.TextIOBase``: a file-like object open in text mode, or the path
-  to the file to write on. If a path is provided, the file will be created if it
-  doesn't exist, and otherwise overwritten.
+  to the file to write on. If a path is provided, the file will be written to in
+  UTF-8 encoding, and it will be created if it doesn't exist or overwritten if
+  it does.
 - ``attrib: dict[SeatData, int]``: a mapping from a SeatData object applying to
   a number of seats in the resulting hemicycle, to the number of seats each
   object applies to. Typically, each SeatData object corresponds to a group or
@@ -199,8 +200,9 @@ This function writes an SVG file representing a hemicycle. The parameters are as
 follows:
 
 - ``file: str|io.TextIOBase``: a file-like object open in text mode, or the path
-  to the file to write on. If a path is provided, the file will be created if it
-  doesn't exist, and otherwise overwritten.
+  to the file to write on. If a path is provided, the file will be written to in
+  UTF-8 encoding, and it will be created if it doesn't exist or overwritten if
+  it does.
 - ``seat_centers: dict[tuple[float, float], SeatData]``: a mapping from the
   (x, y) coordinates of each seat's center to a SeatData object.
 - ``seat_actual_radius: float``: as output by ``get_seats_centers``.

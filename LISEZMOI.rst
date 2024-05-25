@@ -87,7 +87,8 @@ sont les suivants :
 
 - ``file: str|io.TextIOBase`` : un fichier ouvert en mode texte, ou le chemin
   vers le fichier sur lequel écrire. Si un chemin est fourni, le fichier sera
-  créé si il n'existe pas, et sera écrasé sinon.
+  écrit sous l'encodage UTF-8, et il sera créé si il n'existe pas et sinon
+  réécrit.
 - ``attrib: dict[SeatData, int]`` : un dictionnaire d'objets SeatData
   s'appliquant à un ensemble de sièges présents dans l'hémicycle, vers le nombre
   de sièges auxquels l'objet s'applique. Typiquement, chaque objet correspond à
@@ -201,7 +202,8 @@ sont les suivants :
 
 - ``file: str|io.TextIOBase`` : un fichier ouvert en mode texte, ou le chemin
   vers le fichier sur lequel écrire. Si un chemin est fourni, le fichier sera
-  créé si il n'existe pas, et sera écrasé sinon.
+  écrit sous l'encodage UTF-8, et il sera créé si il n'existe pas et sinon
+  réécrit.
 - ``seat_centers: dict[tuple[float, float], SeatData]`` : un dictionnaire des
   coordonnées (x, y) des centres des sièges vers des objets SeatData.
 - ``seat_actual_radius: float`` : le rayon des sièges, tel que renvoyé par
