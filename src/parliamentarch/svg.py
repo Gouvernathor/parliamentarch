@@ -157,8 +157,14 @@ def _append_grouped_svg_seats(
             group_border_color = group_border_color.hexcode
 
         buffer.append(f"""
-    <g style="fill:{group_color}; stroke-width:{group_border_width:.2f}; stroke:{group_border_color}"
-       id="{block_id}">
+    <g style="fill:{group_color}""")
+        if group_border_width:
+            buffer.append(f"; stroke-width:{group_border_width:.2f}; stroke:{group_border_color}")
+        # the fourth quote on the next line is intentional
+        buffer.append(f""""
+       id="{block_id}">""")
+        if group.data:
+            buffer.append(f"""
         <title>{group.data}</title>""")
 
         for x, y in seat_centers:
