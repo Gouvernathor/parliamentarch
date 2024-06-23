@@ -1,12 +1,14 @@
+from collections import Counter
 from collections.abc import Iterable
 from functools import cached_property
+import math
 import re
 from typing import TypeVar
 import warnings
 
 from ._util import Color, UnPicklable, write_from_get
 
-__all__ = ("SeatData", "dispatch_seats", "write_svg", "write_grouped_svg", "get_svg", "get_grouped_svg")
+__all__ = ("SeatData", "dispatch_seats", "better_dispatch_seats", "write_svg", "write_grouped_svg", "get_svg", "get_grouped_svg")
 
 class SeatData(UnPicklable):
     """Put this somewhere else"""
@@ -54,7 +56,7 @@ def dispatch_seats(
     Typically the groups are ordered from the left to the right,
     and the seats are ordered from the left to the right.
     If too few seats are passed, an exception is raised.
-    If too many seats are passed, a warning is emitted.
+    If too many seats are passed, the output will be incorrect and a warning is emitted.
     """
     its = iter(seats)
     rv = {}
@@ -63,6 +65,78 @@ def dispatch_seats(
     if tuple(its):
         warnings.warn("Too many seats were passed to dispatch_seats.")
     return rv
+
+def bruteforce_better_dispatch_seats(
+        group_seats: dict[SeatData, int],
+        seats: dict[tuple[float, float], float],
+        ) -> dict[SeatData, list[tuple[float, float]]]:
+    """
+    From a dict of groups associating the groups in a given order
+    to the number of seats each group has,
+    and an dict of x/y seat coordinates
+    to the angle of each seat wrt the center of the half-annulus,
+    returns a dict associating each group to a list of seats.
+    The grouping minimizes the maximum distance between the seats in each group.
+    The length of the iterable should be the sum of the values in the dict.
+    Typically the groups are ordered from the left to the right,
+    and the seats are ordered from the left to the right.
+    If too few seats are passed, an exception is raised.
+    If too many seats are passed...?
+    """
+    # put the seats (tuple[float, float]) in subgroups
+    # such that the max distance (math.hypot(x1-x2, y1-y2)) between the seats of each subgroup is minimized
+    # the number of seats in each subgroup is as group_seats indicates
+    # when computing for each group the mean of the value of the seats in the seats dict, the values should be increasing
+
+    # generate all possible SeatData sequences
+    # such that the sequence length is len(seats)
+    # and the number of times each number appears is the value of the corresponding group in group_seats
+    nseats = len(seats)
+    group_seats = Counter(group_seats)
+    def generate_sequences(sequence: tuple[SeatData, ...] = ()):
+        if len(sequence) >= nseats:
+            yield sequence
+            return
+        localcounter = group_seats - Counter(sequence)
+        for p in localcounter:
+            yield from generate_sequences(sequence+(p,))
+
+    def get_weight(attrib) -> float:
+        return sum(max(math.hypot(seat1[0]-seat2[0], seat1[1]-seat2[1]) for seat1 in seatlist for seat2 in seatlist) for seatlist in attrib.values())
+
+    def get_mean_angle(seat_list) -> float:
+        return sum(seats[s] for s in seat_list) / len(seat_list)
+
+    seats_sequence = tuple(seats)
+    def get_attribution_from_sequence(sequence) -> dict[SeatData, list[tuple[float, float]]]:
+        attribution = {sd: [] for sd in group_seats}
+        for i, sd in enumerate(sequence):
+            attribution[sd].append(seats_sequence[i])
+        return attribution
+
+    lstgs = list(group_seats)
+    weight_per_sequence: dict[tuple[SeatData, ...]|None, float] = {None: math.inf}
+    best_sequence = None
+    for i, sequence in enumerate(generate_sequences()):
+        assert Counter(sequence) == Counter(group_seats)
+
+        attribution = get_attribution_from_sequence(sequence)
+
+        # test if the order is correct
+        if sorted(group_seats, key=lambda g: get_mean_angle(attribution[g])) == lstgs:
+            if sequence in weight_per_sequence:
+                raise ValueError("Duplicate sequence")
+            weight = get_weight(attribution)
+            weight_per_sequence[sequence] = weight
+            if weight < weight_per_sequence[best_sequence]:
+                best_sequence = sequence
+
+        print(f"{len(weight_per_sequence)} good / {i} tested {hash(best_sequence)}", end="\r")
+    print()
+
+    return get_attribution_from_sequence(best_sequence)
+
+better_dispatch_seats = bruteforce_better_dispatch_seats
 
 
 def get_svg(
