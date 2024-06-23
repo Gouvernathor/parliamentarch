@@ -23,7 +23,10 @@ class Color(NamedTuple):
     a: int = 255
     @property
     def hexcode(self) -> str:
-        return f"#{self.r:02x}{self.g:02x}{self.b:02x}{self.a:02x}"
+        rv = f"#{self.r:02x}{self.g:02x}{self.b:02x}"
+        if self.a != 255:
+            return rv + f"{self.a:02x}"
+        return rv
     @classmethod
     def from_any(cls, o, /):
         if isinstance(o, cls):
