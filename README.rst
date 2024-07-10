@@ -137,6 +137,13 @@ From a given number of rows (and span angle), returns a list of each row's
 maximum seat capacity, starting from inner to outer. The list is increasing and
 its length is the number of rows.
 
+``get_row_thickness(nrows: int) -> float``
+
+From a given number of rows, returns the thickness of the row, i.e the
+difference between the radii of successive rows. This can help converting a seat
+radius factor (as passed to ``write_svg_from_attribution``) to a seat radius as
+taken by ``write_svg``.
+
 ``FillingStrategy``
 
 This is an enumeration of the different implemented strategies to fill the seats

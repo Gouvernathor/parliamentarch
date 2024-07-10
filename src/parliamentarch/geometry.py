@@ -2,12 +2,12 @@ import enum
 import functools
 import math
 
-__all__ = ("get_rows_from_nrows", "get_nrows_from_nseats", "FillingStrategy", "get_seats_centers")
+__all__ = ("get_row_thickness", "get_rows_from_nrows", "get_nrows_from_nseats", "FillingStrategy", "get_seats_centers")
 
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
 _DEFAULT_SPAN_ANGLE = 180
 
-def _get_row_thickness(nrows: int) -> float:
+def get_row_thickness(nrows: int) -> float:
     """
     Returns the thickness of a row in the same unit as the coordinates.
     """
@@ -24,7 +24,7 @@ def get_rows_from_nrows(nrows: int, span_angle: float = _DEFAULT_SPAN_ANGLE) -> 
 
     # thickness of a row (as an annulus) compared to the outer diameter of the hemicycle
     # this is equal to the diameter of a single seat
-    rad = _get_row_thickness(nrows)
+    rad = get_row_thickness(nrows)
     # if you divide the half-disk of the hemicycle
     # into one half-disk of half the radius
     # and one half-annulus outside it,
@@ -115,7 +115,7 @@ def get_seats_centers(nseats: int, *,
     """
     nrows = max(min_nrows, _cached_get_nrows_from_nseats(nseats, span_angle))
     # thickness of a row in the same unit as the coordinates
-    row_thicc = _get_row_thickness(nrows)
+    row_thicc = get_row_thickness(nrows)
     span_angle_margin = (1 - span_angle/180)*math.pi /2
 
     maxed_rows = _cached_get_rows_from_nrows(nrows, span_angle)

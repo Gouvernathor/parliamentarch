@@ -147,6 +147,14 @@ de sièges dans un diagramme s'étendant sur un angle donné.
 liste du nombre maximum de sièges que chaque rangée peut contenir, de
 l'intérieur vers l'extérieur. La liste est croissante et sa longueur est égale au nombre de rangées.
 
+``get_row_thickness(nrows: int) -> float``
+
+À partir d'un nombre de rangées donné, renvoie l'épaisseur de rangée, c'est à
+dire la différence entre les rayons de deux rangées consécutives. Cette fonction
+peut aider à convertir un ratio de rayon de siège (tel que passé à
+``write_svg_from_attribution``) en un rayon de siège tel que pris par
+``write_svg``.
+
 ``FillingStrategy``
 
 Énumération des différentes stratégies de répartition des sièges entre les
