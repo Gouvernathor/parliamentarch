@@ -9,7 +9,7 @@ __all__ = ("get_svg_from_attribution", "write_svg_from_attribution", "SeatData")
 _GET_SEATS_CENTERS_PARAM_NAMES = {k: p for k, p in signature(get_seats_centers).parameters.items() if p.kind==p.KEYWORD_ONLY}
 _WRITE_GROUPED_SVG_PARAM_NAMES = {k: p for k, p in signature(get_grouped_svg).parameters.items() if p.kind==p.KEYWORD_ONLY}
 
-def get_svg_from_attribution(attrib: dict[SeatData, int], *, seat_radius_factor: float = 1., **kwargs) -> str:
+def get_svg_from_attribution(attrib: dict[SeatData, int], *, seat_radius_factor: float = .8, **kwargs) -> str:
     nseats = sum(attrib.values())
     get_seats_centers_kwargs, write_grouped_svg_kwargs, kwargs = filter_kwargs(_GET_SEATS_CENTERS_PARAM_NAMES, _WRITE_GROUPED_SVG_PARAM_NAMES, **kwargs)
 
