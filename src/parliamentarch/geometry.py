@@ -2,8 +2,6 @@ import enum
 import functools
 import math
 
-from ._util import UnPicklable
-
 __all__ = ("get_rows_from_nrows", "get_nrows_from_nseats", "FillingStrategy", "get_seats_centers")
 
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
@@ -88,27 +86,11 @@ class FillingStrategy(enum.StrEnum):
     Fills up the rows as much as possible, starting with the outermost ones.
     """
 
-class _SeatsCenterContainer(dict[tuple[float, float], float], UnPicklable):
-    """
-    Stores the coordinates of each seat as keys, the counterclockwise angle as values,
-    and other data as attributes.
-    """
-    seat_radius_factor: float
-    nrows: int
-
-    @property
-    def row_thickness(self):
-        return _get_row_thickness(self.nrows)
-    @property
-    def seat_actual_radius(self):
-        return self.seat_radius_factor * _get_row_thickness(self.nrows)
-
 def get_seats_centers(nseats: int, *,
                       min_nrows: int = 0,
                       filling_strategy: FillingStrategy = FillingStrategy.DEFAULT,
-                      seat_radius_factor: float = 1,
                       span_angle: float = _DEFAULT_SPAN_ANGLE,
-                      ) -> _SeatsCenterContainer:
+                      ) -> dict[tuple[float, float], float]:
     """
     Returns a list of nseats seat centers as (angle, x, y) tuples.
     The canvas is assumed to be of 2 in width and 1 in height, with the y axis pointing up.
@@ -134,7 +116,6 @@ def get_seats_centers(nseats: int, *,
     nrows = max(min_nrows, _cached_get_nrows_from_nseats(nseats, span_angle))
     # thickness of a row in the same unit as the coordinates
     row_thicc = _get_row_thickness(nrows)
-    seat_radius = row_thicc * seat_radius_factor
     span_angle_margin = (1 - span_angle/180)*math.pi /2
 
     maxed_rows = _cached_get_rows_from_nrows(nrows, span_angle)
@@ -173,7 +154,7 @@ def get_seats_centers(nseats: int, *,
         case _:
             raise ValueError(f"Unrecognized strategy : {filling_strategy}")
 
-    positions = _SeatsCenterContainer()
+    positions = {}
     for r in range(starting_row, nrows):
         if r == nrows-1: # if it's the last, outermost row
             # fit all the remaining seats
@@ -193,7 +174,7 @@ def get_seats_centers(nseats: int, *,
         row_arc_radius = .5 + 2*r*row_thicc
 
         # the angle necessary in this row to put the first (and last) seats fully in the canvas
-        angle_margin = math.asin(seat_radius/row_arc_radius)
+        angle_margin = math.asin(row_thicc/row_arc_radius)
         # add the margin to make up the side angle
         angle_margin += span_angle_margin
         # alternatively, allow the centers of the seats by the side to reach the angle's boundary
@@ -212,6 +193,4 @@ def get_seats_centers(nseats: int, *,
                 # an oriented angle, so it goes trig positive (counterclockwise)
                 positions[row_arc_radius*math.cos(angle)+1, row_arc_radius*math.sin(angle)] = angle
 
-    positions.seat_radius_factor = seat_radius_factor
-    positions.nrows = nrows
     return positions
