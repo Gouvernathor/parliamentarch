@@ -155,7 +155,7 @@ among the rows. The strategies are:
   capacity, starting with the outermost rows going in. The result is that given
   a number of rows, adding one seat makes a change in only one row.
 
-``get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
+``get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
 
 This is the main function. Other than self-explanatory parameters similar to
 the functions above:
@@ -167,12 +167,12 @@ the functions above:
 - ``seat_radius_factor``: The ratio of the seats radius over the row thickness.
   Defaults to 1, which makes seats touch their neighbors.
 
-The function returns a dict-like object representing the ensemble of seats. The
-keys are ``(x, y)``, the cartesian coordinates of the center of the seat. The
-coordinates start from the bottom-left corner of the rectangle, with the x axis
-pointing right and the y axis pointing up. The radius of the outermost circle
-(equal to the height and half the width of the rectangle) is 1, so x goes from
-0 to 2 and y goes from 0 to 1.
+The function returns a dict representing the ensemble of seats. The keys are
+``(x, y)``, the cartesian coordinates of the center of the seat. The coordinates
+start from the bottom-left corner of the rectangle, with the x axis pointing
+right and the y axis pointing up. The radius of the outermost circle (equal to
+the height and half the width of the rectangle) is 1, so x goes from 0 to 2 and
+y goes from 0 to 1.
 
 The value of each entry is the angle, in radians, calculated from the
 right-outermost point of the annulus arc, to the center of the arcs, to the
@@ -228,7 +228,9 @@ follows:
 - ``seat_centers: dict[tuple[float, float], SeatData]``: a mapping from the
   (x, y) coordinates of each seat's center to a SeatData object.
 
-- ``seat_actual_radius: float``: as output by ``get_seats_centers``.
+- ``seat_actual_radius: float``: the seat radius, in the same unit as the
+  coordinates returned by ``get_seat_centers``, i.e as a fraction of
+  ``canvas_size``.
 
 - ``canvas_size: float``: the height of the 2:1 rectangle in which the hemicycle
   will be drawn.

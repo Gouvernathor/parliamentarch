@@ -164,7 +164,7 @@ rangées. Les stratégies implémentées sont les suivantes :
   maximale, de l'extérieur vers l'intérieur. Le résultat est qu'avec un nombre
   donné de rangées, ajouter un siège ne modifie qu'une seule rangée.
 
-``get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., seat_radius_factor: float = 1., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> List[Tuple[float, float]]``
+``get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> List[Tuple[float, float]]``
 
 La fonction principale. En-dehors des paramètres évidents ou équivalents aux fonctions précédentes :
 
@@ -176,12 +176,12 @@ La fonction principale. En-dehors des paramètres évidents ou équivalents aux 
   divisé par l'épaisseur de rangée. Par défaut, à 1, les sièges peuvent toucher
   leurs voisins.
 
-La fonction renvoie un objet similaire à un dictionnaire représentant l'ensemble
-des sièges. Les clés sont ``(x, y)``, les coordonnées cartésiennes du centre du
-siège. Les coordonnées partent du coin inférieur gauche du rectangle, avec l'axe
-x vers la droite et l'axe y vers le haut. Le rayon de l'arc extérieur (égal à la
-hauteur et à la moitié de la largeur du rectangle) est 1, donc x va de 0 à 2 et
-y de 0 à 1.
+La fonction renvoie un dictionnaire représentant l'ensemble des sièges. Les clés
+sont ``(x, y)``, les coordonnées cartésiennes du centre du siège. Les
+coordonnées partent du coin inférieur gauche du rectangle, avec l'axe x vers la
+droite et l'axe y vers le haut. Le rayon de l'arc extérieur (égal à la hauteur
+et à la moitié de la largeur du rectangle) est 1, donc x va de 0 à 2 et y de 0
+à 1.
 
 La valeur pour chaque clé est l'angle, en radian, depuis le point le plus
 extérieur et à droite de l'arc d'anneau, vers le centre des arcs, jusqu'au
@@ -235,8 +235,9 @@ sont les suivants :
 - ``seat_centers: dict[tuple[float, float], SeatData]`` : un dictionnaire des
   coordonnées (x, y) des centres des sièges vers des objets SeatData.
 
-- ``seat_actual_radius: float`` : le rayon des sièges, tel que renvoyé par
-  ``get_seats_centers``.
+- ``seat_actual_radius: float`` : le rayon des sièges, dans la même unité que
+  les coordonnées renvoyées par ``get_seat_centers``, c'est à dire une fraction
+  de ``canvas_size``.
 
 - ``canvas_size: float`` : la hauteur du rectangle 2:1 dans lequel l'hémicycle
   est inscrit.
