@@ -97,7 +97,7 @@ Ces éléments se trouvent dans le module ``parliamentarch``.
 Cette classe est définie et expliquée dans le sous-module SVG ci-dessous, mais
 il est exposé au sein du module principal.
 
-``write_svg_from_attribution(file, attrib, **kwargs)``
+``write_svg_from_attribution(file, attrib, *, seat_radius_factor: float = 1., **kwargs)``
 
 Cette fonction écrit un fichier SVG représentant un hémicycle. Les paramètres
 sont les suivants :
@@ -112,6 +112,10 @@ sont les suivants :
   de sièges auxquels l'objet s'applique. Typiquement, chaque objet correspond à
   un parti ou un groupe. L'ordre des clés a un sens, et les éléments seront
   disposés de gauche à droite dans l'hémicycle.
+
+- ``seat_radius_factor`` : le ratio de rayon de siège, égal au rayon du siège
+  divisé par l'épaisseur de rangée. Par défaut, à 1, les sièges peuvent toucher
+  leurs voisins.
 
 - ``**kwargs`` : tous les paramètres optionnels acceptés par
   ``parliamentarch.geometry.get_seats_centers`` ou par
@@ -172,10 +176,6 @@ La fonction principale. En-dehors des paramètres évidents ou équivalents aux 
   compte si la valeur est supérieure au nombre de rangées nécessaires pour
   contenir le nombre de sièges donné.
 
-- ``seat_radius_factor`` : le ratio de rayon de siège, égal au rayon du siège
-  divisé par l'épaisseur de rangée. Par défaut, à 1, les sièges peuvent toucher
-  leurs voisins.
-
 La fonction renvoie un dictionnaire représentant l'ensemble des sièges. Les clés
 sont ``(x, y)``, les coordonnées cartésiennes du centre du siège. Les
 coordonnées partent du coin inférieur gauche du rectangle, avec l'axe x vers la
@@ -186,15 +186,6 @@ et à la moitié de la largeur du rectangle) est 1, donc x va de 0 à 2 et y de 
 La valeur pour chaque clé est l'angle, en radian, depuis le point le plus
 extérieur et à droite de l'arc d'anneau, vers le centre des arcs, jusqu'au
 centre du siège.
-
-De plus, la valeur de retour contient les attributs suivants :
-
-- ``di.seat_actual_radius`` : le rayon des sièges, dans la même unité que les
-  coordonnées.
-
-- ``di.nrows`` : comme passé à la fonction.
-
-- ``di.seat_radius_factor`` : comme passé à la fonction.
 
 Appeler ``sorted(di, key=di.get, reverse=True)`` renvoie la liste des sièges
 triée de gauche à droite.

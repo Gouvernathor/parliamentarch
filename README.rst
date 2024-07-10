@@ -88,7 +88,7 @@ These are found in the ``parliamentarch`` module.
 This class is defined and explained in the SVG submodule below, but it is
 exposed as part of the main module.
 
-``write_svg_from_attribution(file, attrib, **kwargs)``
+``write_svg_from_attribution(file, attrib, *, seat_radius_factor: float = 1., **kwargs)``
 
 This function writes an SVG file representing a hemicycle. The parameters are as
 follows:
@@ -103,6 +103,9 @@ follows:
   object applies to. Typically, each SeatData object corresponds to a group or
   party. The ordering of the keys matter, and the elements will be arranged from
   left to right in the hemicycle.
+
+- ``seat_radius_factor: float``: the ratio of the seats radius over the row
+  thickness. Defaults to 1, which makes seats touch their neighbors.
 
 - ``**kwargs``: all optional keyword parameters taken by
   ``parliamentarch.geometry.get_seats_centers`` or by
@@ -164,9 +167,6 @@ the functions above:
   the required number of rows to hold the given number of seats is less than
   that. Defaults to 0, which means using the minimum number of rows possible.
 
-- ``seat_radius_factor``: The ratio of the seats radius over the row thickness.
-  Defaults to 1, which makes seats touch their neighbors.
-
 The function returns a dict representing the ensemble of seats. The keys are
 ``(x, y)``, the cartesian coordinates of the center of the seat. The coordinates
 start from the bottom-left corner of the rectangle, with the x axis pointing
@@ -177,18 +177,6 @@ y goes from 0 to 1.
 The value of each entry is the angle, in radians, calculated from the
 right-outermost point of the annulus arc, to the center of the arcs, to the
 center of the seat.
-
-In addition, the return value has the following attributes:
-
-- ``row_thickness``: the thickness of the rows, in the same unit as the
-  coordinates.
-
-- ``seat_actual_radius``: the radius of the seats, in the same unit as the
-  coordinates.
-
-- ``nrows``: as passed to the function.
-
-- ``seat_radius_factor``: as passed to the function.
 
 Calling ``sorted(di, key=di.get, reverse=True)`` will return a list of the seats
 arranged from left to right.
