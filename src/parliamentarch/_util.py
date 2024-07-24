@@ -48,10 +48,12 @@ _file_parameter = Parameter("file",
 
 def write_from_get(get_func: Callable[..., str]) -> Callable[..., None]:
     def write_func(file, /, *args, **kwargs):
+        rv = get_func(*args, **kwargs)
         if isinstance(file, str):
             with open(file, "w", encoding="UTF-8") as f:
-                return write_func(f, *args, **kwargs)
-        print(get_func(*args, **kwargs), file=file)
+                print(rv, file=f)
+        else:
+            print(rv, file=file)
 
     get_sig = signature(get_func)
     write_sig = get_sig.replace(
