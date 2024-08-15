@@ -180,14 +180,14 @@ def get_seats_centers(nseats: int, *,
         # alternatively, allow the centers of the seats by the side to reach the angle's boundary
         # angle_margin = max(angle_margin, span_angle_margin)
 
-        # the angle separating the seats of that row
-        angle_increment = (math.pi-2*angle_margin) / (nseats_this_row-1)
-        # a fraction of the remaining space,
-        # keeping in mind that the same elevation on start and end limits that remaining place to less than 2pi
-
         if nseats_this_row == 1:
             positions[1., row_arc_radius] = math.pi/2
         else:
+            # the angle separating two seats of that row
+            angle_increment = (math.pi-2*angle_margin) / (nseats_this_row-1)
+            # a fraction of the remaining space,
+            # keeping in mind that the same elevation on start and end limits that remaining place to less than 2pi
+
             for s in range(nseats_this_row):
                 angle = angle_margin + s*angle_increment
                 # an oriented angle, so it goes trig positive (counterclockwise)
