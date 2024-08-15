@@ -145,8 +145,6 @@ def _append_grouped_svg_seats(
             group_number = group_number_fallback
             group_number_fallback += 1
 
-        block_id = f"{group_number}-{group.sanitized_data}"
-
         group_border_width = group.border_size * seat_actual_radius * canvas_size
 
         group_color = group.color
@@ -162,7 +160,7 @@ def _append_grouped_svg_seats(
             buffer.append(f"; stroke-width:{group_border_width:.2f}; stroke:{group_border_color}")
         # the fourth quote on the next line is intentional
         buffer.append(f""""
-       id="{block_id}">""")
+       id="{group_number}-{group.sanitized_data}">""")
         if group.data:
             buffer.append(f"""
         <title>{group.data}</title>""")
