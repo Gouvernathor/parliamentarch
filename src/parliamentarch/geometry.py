@@ -173,16 +173,16 @@ def get_seats_centers(nseats: int, *,
         # row radius : the radius of the circle crossing the center of each seat in the row
         row_arc_radius = .5 + 2*r*row_thicc
 
-        # the angle necessary in this row to put the first (and last) seats fully in the canvas
-        angle_margin = math.asin(row_thicc/row_arc_radius)
-        # add the margin to make up the side angle
-        angle_margin += span_angle_margin
-        # alternatively, allow the centers of the seats by the side to reach the angle's boundary
-        # angle_margin = max(angle_margin, span_angle_margin)
-
         if nseats_this_row == 1:
             positions[1., row_arc_radius] = math.pi/2
         else:
+            # the angle necessary in this row to put the first (and last) seats fully in the canvas
+            angle_margin = math.asin(row_thicc/row_arc_radius)
+            # add the margin to make up the side angle
+            angle_margin += span_angle_margin
+            # alternatively, allow the centers of the seats by the side to reach the angle's boundary
+            # angle_margin = max(angle_margin, span_angle_margin)
+
             # the angle separating two seats of that row
             angle_increment = (math.pi-2*angle_margin) / (nseats_this_row-1)
             # a fraction of the remaining space,
