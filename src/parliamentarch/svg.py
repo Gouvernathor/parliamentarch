@@ -1,5 +1,6 @@
 from collections.abc import Iterable
 from functools import cached_property
+from html import escape
 import re
 from typing import TypeVar
 import warnings
@@ -163,7 +164,7 @@ def _append_grouped_svg_seats(
        id="{group_number}-{group.sanitized_data}">""")
         if group.data:
             buffer.append(f"""
-        <title>{group.data}</title>""")
+        <title>{escape(group.data)}</title>""")
 
         for x, y in seat_centers:
             actual_x = left_margin + canvas_size * x

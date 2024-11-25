@@ -1,7 +1,7 @@
 Parliamentarch
 ==============
 
-Utility math functions for the generation of arch-styled parliamentary arches.
+Utility math functions for the generation of arch-styled parliamentary diagrams.
 
 Base math and layout
 --------------------
