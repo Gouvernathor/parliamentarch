@@ -3,6 +3,8 @@ Parliamentarch
 
 Utility math functions for the generation of arch-styled parliamentary diagrams.
 
+Now available as `a published Typescript package <https://www.npmjs.com/package/parliamentarch>`__.
+
 Base math and layout
 --------------------
 
