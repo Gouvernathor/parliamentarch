@@ -1,6 +1,6 @@
 from inspect import signature
 
-from .geometry import get_nrows_from_nseats, get_row_thickness, get_seats_centers
+from .geometry import FillingStrategy, get_nrows_from_exact_capacities, get_nrows_from_nseats, get_row_thickness, get_seats_centers
 from .svg import SeatData, dispatch_seats, get_grouped_svg
 from ._util import filter_kwargs, write_from_get
 
@@ -18,7 +18,12 @@ def get_svg_from_attribution(attrib: dict[SeatData, int], *, seat_radius_factor:
 
     results = get_seats_centers(nseats, **get_seats_centers_kwargs)
     seat_centers_by_group = dispatch_seats(attrib, sorted(results, key=results.__getitem__, reverse=True))
-    seat_actual_radius = seat_radius_factor * get_row_thickness(get_nrows_from_nseats(nseats))
+    if get_seats_centers_kwargs.get("filling_strategy") == FillingStrategy.EMPTY_INNER:
+        nrows = max(get_seats_centers_kwargs.get("min_nrows", 0),
+                    get_nrows_from_exact_capacities(nseats, get_seats_centers_kwargs.get("span_angle", 180)))
+    else:
+        nrows = get_nrows_from_nseats(nseats)
+    seat_actual_radius = seat_radius_factor * get_row_thickness(nrows)
     return get_grouped_svg(seat_centers_by_group, seat_actual_radius, **write_grouped_svg_kwargs)
 
 _sig = signature(get_svg_from_attribution)

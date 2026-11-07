@@ -2,7 +2,7 @@ import enum
 import functools
 import math
 
-__all__ = ("get_row_thickness", "get_rows_from_nrows", "get_nrows_from_nseats", "FillingStrategy", "get_seats_centers")
+__all__ = ("get_row_thickness", "get_rows_from_nrows", "get_nrows_from_nseats", "get_exact_row_capacities", "get_nrows_from_exact_capacities", "FillingStrategy", "get_seats_centers")
 
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
 _DEFAULT_SPAN_ANGLE = 180
@@ -64,6 +64,41 @@ def get_nrows_from_nseats(nseats: int, span_angle: float = _DEFAULT_SPAN_ANGLE) 
 
 _cached_get_nrows_from_nseats = functools.cache(get_nrows_from_nseats)
 
+def get_exact_row_capacities(nrows: int, span_angle: float = _DEFAULT_SPAN_ANGLE) -> list[float]:
+    """
+    Like get_rows_from_nrows, but without rounding down:
+    the length of each row's arc divided by the thickness of a row.
+    Returns a list of capacities per row, from inner to outer.
+    """
+    rad = get_row_thickness(nrows)
+    radian_span_angle = math.pi*span_angle/180
+    return [radian_span_angle*(.5 + 2*r*rad)/(2*rad) for r in range(nrows)]
+
+def get_nrows_from_exact_capacities(nseats: int, span_angle: float = _DEFAULT_SPAN_ANGLE) -> int:
+    """
+    Returns the minimal number of rows whose capacities,
+    as given by get_exact_row_capacities, add up to at least nseats.
+    """
+    i = 1
+    while sum(get_exact_row_capacities(i, span_angle)) < nseats:
+        i += 1
+    return i
+
+def _split_by_largest_remainder(nseats: int, weights: list[float]) -> list[int]:
+    """
+    Splits nseats among the rows in proportion to weights.
+    Each row gets the whole part of its share, then each seat still unassigned
+    goes to a different row, starting with the largest fractional part.
+    Fractional parts equal to 9 decimal places count as tied, and ties go to the outer row.
+    """
+    total = sum(weights)
+    shares = [nseats*w/total for w in weights]
+    seats = [math.floor(s) for s in shares]
+    order = sorted(range(len(shares)), key=lambda i: (round(shares[i]-seats[i], 9), i), reverse=True)
+    for i in order[:nseats-sum(seats)]:
+        seats[i] += 1
+    return seats
+
 
 class FillingStrategy(enum.StrEnum):
     def __new__(cls, value, doc):
@@ -79,7 +114,8 @@ class FillingStrategy(enum.StrEnum):
 
     EMPTY_INNER = enum.auto(), """
     Selects as few outermost rows as necessary, then distributes the seats among them,
-    proportionally to the maximum number of seats each row may contain.
+    proportionally to the number of seats each row may contain.
+    Row capacities are not rounded down, and the seats are split by largest remainder.
     """
 
     OUTER_PRIORITY = enum.auto(), """
@@ -113,7 +149,10 @@ def get_seats_centers(nseats: int, *,
     It defaults to 180° to make a true hemicycle.
     Values above 180° are not supported.
     """
-    nrows = max(min_nrows, _cached_get_nrows_from_nseats(nseats, span_angle))
+    if filling_strategy == FillingStrategy.EMPTY_INNER:
+        nrows = max(min_nrows, get_nrows_from_exact_capacities(nseats, span_angle))
+    else:
+        nrows = max(min_nrows, _cached_get_nrows_from_nseats(nseats, span_angle))
     # thickness of a row in the same unit as the coordinates
     row_thicc = get_row_thickness(nrows)
     span_angle_margin = (1 - span_angle/180)*math.pi /2
@@ -126,17 +165,14 @@ def get_seats_centers(nseats: int, *,
             filling_ratio = nseats/sum(maxed_rows)
 
         case FillingStrategy.EMPTY_INNER:
-            rows = list(maxed_rows)
-            while sum(rows[1:]) >= nseats:
-                rows.pop(0)
-            # here, rows represents the rows which are enough to contain nseats,
-            # and their number of seats
-
+            capacities = get_exact_row_capacities(nrows, span_angle)
             # this row will be the first one to be filled
             # the innermore ones are empty
-            starting_row = nrows-len(rows)
-            filling_ratio = nseats/sum(rows)
-            del rows
+            starting_row = 0
+            while sum(capacities[starting_row+1:]) >= nseats:
+                starting_row += 1
+            seats_per_row = _split_by_largest_remainder(nseats, capacities[starting_row:])
+            del capacities
 
         case FillingStrategy.OUTER_PRIORITY:
             rows = list(maxed_rows)
@@ -156,7 +192,9 @@ def get_seats_centers(nseats: int, *,
 
     positions = {}
     for r in range(starting_row, nrows):
-        if r == nrows-1: # if it's the last, outermost row
+        if filling_strategy == FillingStrategy.EMPTY_INNER:
+            nseats_this_row = seats_per_row[r-starting_row]
+        elif r == nrows-1: # if it's the last, outermost row
             # fit all the remaining seats
             nseats_this_row = nseats-len(positions)
         elif filling_strategy == FillingStrategy.OUTER_PRIORITY:

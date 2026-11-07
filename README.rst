@@ -139,6 +139,16 @@ From a given number of rows (and span angle), returns a list of each row's
 maximum seat capacity, starting from inner to outer. The list is increasing and
 its length is the number of rows.
 
+``get_exact_row_capacities(nrows: int, span_angle: float = 180.) -> list[float]``
+
+The same as ``get_rows_from_nrows``, without rounding the capacities down.
+
+``get_nrows_from_exact_capacities(nseats: int, span_angle: float = 180.) -> int``
+
+The same as ``get_nrows_from_nseats``, using the capacities from
+``get_exact_row_capacities``. This is the number of rows used by the
+``EMPTY_INNER`` strategy.
+
 ``get_row_thickness(nrows: int) -> float``
 
 From a given number of rows, returns the thickness of the row, i.e the
@@ -157,11 +167,15 @@ among the rows. The strategies are:
 
 - ``FillingStrategy.EMPTY_INNER``: This selects as few outermost rows as
   necessary to hold the given seats, then distributes the seats proportionally
-  among them. Depending on the number of seats and of rows, this either leaves
-  empty inner rows, or is equivalent to the ``DEFAULT`` strategy. This is
-  equivalent to the legacy "dense rows" option, in that not counting the
-  potential empty rows, the distance between neighboring seats is the smallest
-  possible, and is close between the rows.
+  among them. Depending on the number of seats and of rows, this may leave
+  empty inner rows. Row capacities are taken from
+  ``get_exact_row_capacities``, without rounding down, and the seats are split
+  by largest remainder: each row gets the whole part of its share, and the
+  remaining seats go one each to the rows with the largest fractional parts,
+  rather than all to the outermost row. This is equivalent to the legacy "dense
+  rows" option, in that not counting the potential empty rows, the distance
+  between neighboring seats is the smallest possible, and is close between the
+  rows.
 
 - ``FillingStrategy.OUTER_PRIORITY``: This fills the rows to their maximum
   capacity, starting with the outermost rows going in. The result is that given
