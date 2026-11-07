@@ -167,6 +167,18 @@ among the rows. The strategies are:
   capacity, starting with the outermost rows going in. The result is that given
   a number of rows, adding one seat makes a change in only one row.
 
+- ``FillingStrategy.UNIFORM_PLUS_THREE``: Each row holds 3 more seats than the
+  row inside it, and the rows are placed so that the distance between
+  neighboring seats is the same in every row. The seats then line up along the
+  bottom and along regular diagonals. The number of rows is chosen to leave an
+  open space at the center of about half the outer radius. When the seats
+  cannot be split with a constant step, the remaining seats (fewer than the
+  number of rows) add one seat each to the outermost rows. 8, 9 and 10 seats
+  use rows of 3 + 5, 3 + 6 and 4 + 6 seats. This strategy only supports a
+  ``span_angle`` of 180°: at other angles, no whole number of extra seats per
+  row keeps the seats of a row about as far apart as the rows are.
+  ``get_uniform_plus_three_rows`` returns the resulting rows.
+
 ``get_seats_centers(nseats: int, *, min_nrows: int = 0, span_angle: float = 180., filling_strategy: FillingStrategy = FillingStrategy.DEFAULT) -> list[tuple[float, float]]``
 
 This is the main function. Other than self-explanatory parameters similar to

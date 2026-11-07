@@ -2,7 +2,7 @@ import enum
 import functools
 import math
 
-__all__ = ("get_row_thickness", "get_rows_from_nrows", "get_nrows_from_nseats", "FillingStrategy", "get_seats_centers")
+__all__ = ("get_row_thickness", "get_rows_from_nrows", "get_nrows_from_nseats", "FillingStrategy", "get_uniform_plus_three_rows", "get_seats_centers")
 
 # default angle, in degrees, coming from the rightmost seats through the center to the leftmost seats
 _DEFAULT_SPAN_ANGLE = 180
@@ -86,6 +86,107 @@ class FillingStrategy(enum.StrEnum):
     Fills up the rows as much as possible, starting with the outermost ones.
     """
 
+    UNIFORM_PLUS_THREE = enum.auto(), """
+    Gives each row 3 more seats than the row inside it,
+    and places the rows so that neighboring seats are equally spaced in every row.
+    Only supports a span_angle of 180°.
+    """
+
+
+# For these numbers of seats, the general rule below gives a single row.
+# 9 seats use 2 rows of the uniform layout (3 + 6). 8 and 10 seats use rows
+# that are not 3 apart, placed like the rows of the other strategies.
+_UNIFORM_PLUS_THREE_NROWS = {9: 2}
+_UNIFORM_PLUS_THREE_SPLITS = {8: (3, 5), 10: (4, 6)}
+
+def get_uniform_plus_three_rows(nseats: int, *,
+                                min_nrows: int = 0,
+                                ) -> tuple[list[int], list[float], float]:
+    """
+    Returns the layout used by FillingStrategy.UNIFORM_PLUS_THREE, as a tuple of
+    the number of seats in each row, the radius of each row (both from inner to outer),
+    and the row thickness, in the same unit as the coordinates.
+
+    Row i holds n0 + 3*i seats. When the seats of a row are about as far apart as
+    the rows are, a 180° row holds about π more seats than the row inside it,
+    and 3 is the nearest whole number.
+    The rows are placed so that the distance between neighboring seats is the same
+    in every row.
+
+    The number of rows is chosen by the open radius at the center: the radius of the
+    innermost row minus the seat radius at the default seat_radius_factor of .8,
+    with the outer edge at 1.
+    Among the numbers of rows (at least min_nrows) that hold nseats with no remainder
+    and give an open radius between .4 and .6, the one closest to .5 is used.
+    If there is none, the number of rows whose open radius is closest to .5 is used,
+    and the remainder, which is less than the number of rows,
+    adds one seat to each of the outermost rows.
+
+    8, 9 and 10 seats use rows of 3 + 5, 3 + 6 and 4 + 6 seats.
+    """
+    step = 3
+
+    split = _UNIFORM_PLUS_THREE_SPLITS.get(nseats)
+    if split is not None and min_nrows <= len(split):
+        row_thicc = get_row_thickness(len(split))
+        return list(split), [.5 + 2*r*row_thicc for r in range(len(split))], row_thicc
+
+    # Seats in a row of radius R span an arc of about π*R - 2*thickness,
+    # with n-1 gaps between them. For the gap to be the same in every row,
+    # and the rows to be one row spacing apart, R = spacing * ((n-1)/3 + 1/π).
+    # The outermost row's outer edge is at radius 1.
+    def row_spacing_for(n0, nrows):
+        outer_base = n0 + step*(nrows-1)
+        return 1 / ((outer_base-1)/step + 1/math.pi + .5)
+
+    def open_radius(n0, nrows):
+        spacing = row_spacing_for(n0, nrows)
+        return spacing * ((n0-1)/step + 1/math.pi) - .8*spacing/2
+
+    # (nrows, seats on the innermost row, remainder, open radius)
+    candidates = []
+    nrows = max(1, min_nrows)
+    while True:
+        n0, remainder = divmod(nseats - step*nrows*(nrows-1)//2, nrows)
+        if n0 < 2:
+            break
+        candidates.append((nrows, n0, remainder, open_radius(n0, nrows)))
+        nrows += 1
+
+    if not candidates:
+        if nseats == 1 and min_nrows <= 1:
+            candidates.append((1, 1, 0, open_radius(1, 1)))
+        else:
+            raise ValueError(f"Cannot place {nseats} seats in at least {min_nrows} rows with a constant step")
+
+    forced = [c for c in candidates if c[0] == _UNIFORM_PLUS_THREE_NROWS.get(nseats)]
+    exact = [c for c in candidates if c[2] == 0 and .4 <= c[3] <= .6]
+    nrows, n0, remainder, _open = forced[0] if forced else min(exact or candidates, key=lambda c: abs(c[3] - .5))
+    row_spacing = row_spacing_for(n0, nrows)
+
+    seats = [n0 + step*r + (r >= nrows-remainder) for r in range(nrows)]
+    radii = [row_spacing * ((n0 + step*r - 1)/step + 1/math.pi) for r in range(nrows)]
+    return seats, radii, row_spacing/2
+
+
+def _get_uniform_plus_three_seats_centers(nseats: int, *,
+                                          min_nrows: int,
+                                          ) -> dict[tuple[float, float], float]:
+    seats, radii, row_thicc = get_uniform_plus_three_rows(nseats, min_nrows=min_nrows)
+
+    positions = {}
+    for nseats_this_row, row_arc_radius in zip(seats, radii):
+        if nseats_this_row == 1:
+            positions[1., row_arc_radius] = math.pi/2
+            continue
+        angle_margin = math.asin(row_thicc/row_arc_radius)
+        angle_increment = (math.pi-2*angle_margin) / (nseats_this_row-1)
+        for s in range(nseats_this_row):
+            angle = angle_margin + s*angle_increment
+            positions[row_arc_radius*math.cos(angle)+1, row_arc_radius*math.sin(angle)] = angle
+
+    return positions
+
 def get_seats_centers(nseats: int, *,
                       min_nrows: int = 0,
                       filling_strategy: FillingStrategy = FillingStrategy.DEFAULT,
@@ -113,6 +214,11 @@ def get_seats_centers(nseats: int, *,
     It defaults to 180° to make a true hemicycle.
     Values above 180° are not supported.
     """
+    if filling_strategy == FillingStrategy.UNIFORM_PLUS_THREE:
+        if span_angle != 180:
+            raise ValueError(f"{FillingStrategy.UNIFORM_PLUS_THREE} only supports a span_angle of 180, not {span_angle}")
+        return _get_uniform_plus_three_seats_centers(nseats, min_nrows=min_nrows)
+
     nrows = max(min_nrows, _cached_get_nrows_from_nseats(nseats, span_angle))
     # thickness of a row in the same unit as the coordinates
     row_thicc = get_row_thickness(nrows)
